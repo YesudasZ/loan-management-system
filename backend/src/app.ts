@@ -1,6 +1,6 @@
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-import express, { type Express } from 'express';
+import express, { type Express, type Request, type Response } from 'express';
 import helmet from 'helmet';
 import { pinoHttp } from 'pino-http';
 import {
@@ -33,7 +33,15 @@ export function createApp(options: AppOptions = {}): Express {
 
   app.use(helmet());
   app.use(cors({ origin: env.CORS_ORIGINS, credentials: true }));
-  app.use(pinoHttp({ logger, autoLogging: { ignore: (req) => req.url === '/health' } }));
+  app.use(
+    pinoHttp<Request, Response>({
+      logger,
+      autoLogging: { ignore: (req) => req.url === '/health' },
+      // The IP Express derived through the proxies; compare it with x-forwarded-for in the
+      // logged headers to verify TRUST_PROXY_HOPS (docs/DEPLOYMENT.md, checkpoint B).
+      customProps: (req) => ({ clientIp: req.ip }),
+    }),
+  );
   app.use((_req, res, next) => {
     // API responses hold personal data; Vercel's CDN must never cache them.
     res.set('Cache-Control', 'no-store');

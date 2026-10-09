@@ -50,6 +50,9 @@ jobs:
         working-directory: frontend
     env:
       NEXT_TELEMETRY_DISABLED: 1
+      # next.config.ts validates these at build time; CI never calls the API.
+      BACKEND_URL: http://localhost:4000
+      JWT_SECRET: ci-only-placeholder-secret-not-used-anywhere
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7

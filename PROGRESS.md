@@ -5,8 +5,8 @@ One entry per merged branch, newest last. Each entry says what changed and how t
 | #   | Branch                         | Status                  |
 | --- | ------------------------------ | ----------------------- |
 | 1   | `chore/repo-setup`             | merged                  |
-| 2   | `feat/backend-foundation-auth` | in review               |
-| 3   | `feat/frontend-foundation`     | planned                 |
+| 2   | `feat/backend-foundation-auth` | merged                  |
+| 3   | `feat/frontend-foundation`     | in review               |
 | 4   | `feat/borrower-journey`        | planned                 |
 | 5   | `feat/operations-modules`      | planned (E2E milestone) |
 | 6   | `feat/sales-admin-overview`    | planned                 |
@@ -61,3 +61,35 @@ One entry per merged branch, newest last. Each entry says what changed and how t
 5. `curl -s -X POST -H 'Origin: https://evil.example' localhost:4000/api/v1/auth/logout` → 403 `INVALID_ORIGIN`.
 6. Signup with `"role":"ADMIN"` in the body → 400.
 7. Checkpoint A on Render: follow docs/DEPLOYMENT.md, then `curl https://<service>.onrender.com/health`.
+
+**Checkpoint A passed (2026-10-10).** The API is live at https://loan-management-system-wl8j.onrender.com: `/health` → 200 with the database connected, a foreign-Origin POST → 403, a bad login → 401.
+
+## 3. `feat/frontend-foundation`
+
+**What changed**
+
+- **Same-origin API:** `next.config.ts` rewrites `/api/*` to `BACKEND_URL`. `BACKEND_URL` and `JWT_SECRET` are validated at build. Page-only security headers (`X-Frame-Options: SAMEORIGIN`, `frame-ancestors 'self'`, `nosniff`, Referrer-Policy, Permissions-Policy).
+- **Route guard (`src/proxy.ts`):** verifies the session JWT and applies `resolveRouteAccess`:
+  - anonymous → `/login?next=…`
+  - borrowers can't reach `/dashboard`
+  - executives only reach their module (another module → the 403 page)
+  - ADMIN reaches every module but not `/apply`
+  - logged-in users skip `/login`
+    An invalid cookie is deleted. `getSafeNextPath` blocks open redirects.
+- **API client:** typed `apiRequest` that unwraps the envelope, throws `ApiError`, redirects only on `UNAUTHENTICATED` / `FORBIDDEN`, and retries GETs while Render wakes up (with a banner).
+- **Pages:** login and signup (client validation mirroring the backend, field errors, generic login error), the 403 page, a borrower shell for `/apply`, and a dashboard shell with a role-filtered sidebar (a drawer on mobile) plus placeholder pages for Overview, Sales, Sanction, Disbursement and Collection. Toasts via sonner; logout.
+- **Backend:** request logs include `clientIp` to measure `TRUST_PROXY_HOPS`.
+- `@types/node` is pinned back to 24.x after Dependabot's bump to 26 (the runtime is Node 24).
+- **Tests:** 29 frontend unit tests (route access for every role and path, safe `next` paths, INR format). Backend: 43 tests unchanged.
+- **Verified locally end to end** (built app + API + MongoDB): role redirects for sanction, admin and borrower, cookie flags, `no-store`, Origin rejection through the proxy, tampered-cookie cleanup, and a browser login → logout with no console errors.
+
+**Manual test steps** (locally, with your backend running on :4000)
+
+1. `npm install --prefix frontend`, then `cp frontend/.env.example frontend/.env.local` and set `JWT_SECRET` to the same value as `backend/.env`.
+2. `npm run dev --prefix frontend` and open http://localhost:3000. It redirects to `/login`.
+3. Log in as `admin@lms.dev` / `Password@123`. You land on Overview, with all modules in the sidebar.
+4. Log out, then log in as `sanction@lms.dev`. You land on Sanction. Open `/dashboard/collection` and `/apply`: both show the 403 page.
+5. Log in as `borrower@lms.dev`. You land on `/apply`. `/dashboard` shows the 403 page.
+6. Visit `/login?next=//evil.com` and log in. You stay on the app (your home page).
+7. Sign up a new account. You land on `/apply` as a borrower.
+8. Checkpoint B on Vercel: follow docs/DEPLOYMENT.md "Checkpoint B".

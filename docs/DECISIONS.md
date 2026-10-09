@@ -49,3 +49,14 @@ Short entries: the decision and the reason. Newest decisions are added at the bo
 34. **The seed resets its accounts on every run** (upsert by email, password reset to `Password@123`) and never touches other accounts. It refuses `NODE_ENV=production` without `--force`; production is seeded from a laptop because Render's free tier has no shell.
 35. **`/health` pings the database with a 2 s cap** and returns 503 if it fails, so Render restarts an instance that lost its database. Health checks are excluded from request logs.
 36. **Test MongoDB binary pinned to 8.0.30** (Atlas M0 runs 8.0) and downloaded once in a vitest global setup, so parallel test files don't race for the download lock.
+
+## Frontend platform (branch 3)
+
+37. **`@types/node` stays on 24.x** (Dependabot ignores its majors). The runtime is Node 24 on Render and Vercel, so Node 26 type definitions would allow APIs that crash in production.
+38. **The route guard (`proxy.ts`) verifies the JWT with the shared secret and fails closed.** A missing secret or an invalid or expired token means "anonymous", and an invalid cookie is deleted, so redirects can't loop. It's UX only; the API re-checks every request.
+39. **`next.config.ts` validates `BACKEND_URL` and `JWT_SECRET` when it loads,** because rewrites are compiled into the build. A misconfigured Vercel project fails its build instead of deploying a broken app. CI passes placeholders.
+40. **Page security headers apply to pages only (`/((?!api/).*)`).** API responses keep the backend's own headers, which the salary-slip viewer will need.
+41. **Navigation after login, signup and logout uses `router.replace`.** The target layout mounts fresh and loads the new session, and the route guard runs on the request. The API client's auth redirects (401 → /login, 403 → /forbidden) do a full page load instead, with a documented lint exception, because they run outside React.
+42. **The API client retries GET requests for about 90 s when the API is unreachable or answers with non-JSON** (Render free-tier cold start) and shows a "Waking up the server" banner. Mutations never retry automatically.
+43. **The backend logs `clientIp` (`req.ip`) on every request.** It is used to measure `TRUST_PROXY_HOPS` on the deployed Vercel → Render path.
+44. **One `CurrentUserProvider` per authenticated layout** loads `/auth/me` once per page load. The cookie is httpOnly, so that's the only way the UI learns the user's name and role.

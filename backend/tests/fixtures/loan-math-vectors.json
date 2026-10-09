@@ -1,0 +1,41 @@
+{
+  "description": "Shared loan-math test vectors (paise). Used by backend/tests/unit/loan-math.test.ts AND frontend/src/lib/loan-math.test.ts. Note: with integer paise, P*12*T/36500 can never end in exactly .5, so rounding ties don't occur.",
+  "annualInterestRate": 12,
+  "cases": [
+    {
+      "name": "minimum amount and tenure",
+      "principal": 5000000,
+      "tenureDays": 30,
+      "simpleInterest": 49315,
+      "totalRepayment": 5049315
+    },
+    {
+      "name": "maximum amount and tenure",
+      "principal": 50000000,
+      "tenureDays": 365,
+      "simpleInterest": 6000000,
+      "totalRepayment": 56000000
+    },
+    {
+      "name": "worked example: ₹1,00,000 for 90 days",
+      "principal": 10000000,
+      "tenureDays": 90,
+      "simpleInterest": 295890,
+      "totalRepayment": 10295890
+    },
+    {
+      "name": "rounds down below .5",
+      "principal": 12345600,
+      "tenureDays": 45,
+      "simpleInterest": 182647,
+      "totalRepayment": 12528247
+    },
+    {
+      "name": "rounds up above .5",
+      "principal": 7500000,
+      "tenureDays": 180,
+      "simpleInterest": 443836,
+      "totalRepayment": 7943836
+    }
+  ]
+}

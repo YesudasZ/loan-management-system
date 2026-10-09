@@ -1,0 +1,32 @@
+# Render Blueprint for the API. See docs/DEPLOYMENT.md for the step-by-step setup.
+services:
+  - type: web
+    name: lms-api
+    runtime: node
+    plan: free # Without this Render creates a paid instance.
+    region: singapore # Same region as the Atlas cluster (AWS ap-southeast-1).
+    branch: main
+    rootDir: backend
+    # devDependencies (TypeScript) are needed to build even though NODE_ENV=production.
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: node dist/server.js
+    healthCheckPath: /health
+    autoDeployTrigger: checksPass # Deploy main only after CI is green.
+    buildFilter:
+      paths:
+        - backend/**
+        - render.yaml
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Skips downloading the test-only MongoDB binary during the build.
+      - key: MONGOMS_DISABLE_POSTINSTALL
+        value: '1'
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: TRUST_PROXY_HOPS
+        sync: false

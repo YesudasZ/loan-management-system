@@ -39,7 +39,7 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
 }
 
 /** Returns the logged-in user. Use only on routes behind `authenticate`. */
-export function getAuthUser(req: Request): AuthUser {
+export function getAuthUser(req: Pick<Request, 'user'>): AuthUser {
   if (!req.user) {
     throw new AppError(401, 'UNAUTHENTICATED', NOT_LOGGED_IN_MESSAGE);
   }

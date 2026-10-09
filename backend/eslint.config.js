@@ -24,6 +24,16 @@ export default defineConfig([
     },
   },
   {
+    // supertest types response bodies as `any` (they are untyped JSON); tests assert on them
+    // directly instead of re-declaring every response shape.
+    files: ['tests/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+    },
+  },
+  {
     // Plain JS config files are not part of the TypeScript project.
     files: ['**/*.js'],
     extends: [tseslint.configs.disableTypeChecked],

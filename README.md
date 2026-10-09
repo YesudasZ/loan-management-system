@@ -40,17 +40,54 @@ npm install --prefix backend
 npm install --prefix frontend
 ```
 
-The root install only sets up git hooks (husky, lint-staged, commitlint) and Prettier. Run each app from its own folder:
+The root install only sets up git hooks (husky, lint-staged, commitlint) and Prettier.
+
+### Backend
+
+There is no local MongoDB: create a free Atlas cluster and a `lms_dev` database user first ([docs/DEPLOYMENT.md](docs/DEPLOYMENT.md), steps 1–2). Then copy the example env file and fill in `MONGODB_URI` and `JWT_SECRET` (every variable is validated at startup):
+
+```bash
+cp backend/.env.example backend/.env
+```
+
+Create the demo accounts (safe to re-run; it resets them to the same state):
+
+```bash
+npm run seed --prefix backend
+```
+
+Start the API on http://localhost:4000 (check http://localhost:4000/health):
 
 ```bash
 npm run dev --prefix backend
 ```
 
+Tests never touch Atlas; they start an in-memory MongoDB replica set (downloaded on the first run).
+
+### Frontend
+
 ```bash
 npm run dev --prefix frontend
 ```
 
-Environment variables are documented in `backend/.env.example` and `frontend/.env.example`. Detailed setup, seeding and deployment steps arrive in later branches.
+## Demo accounts
+
+All seeded accounts use the password `Password@123`.
+
+| Email                  | Role                                      |
+| ---------------------- | ----------------------------------------- |
+| `admin@lms.dev`        | ADMIN (every dashboard module)            |
+| `sales@lms.dev`        | SALES                                     |
+| `sanction@lms.dev`     | SANCTION                                  |
+| `disbursement@lms.dev` | DISBURSEMENT                              |
+| `collection@lms.dev`   | COLLECTION                                |
+| `borrower@lms.dev`     | BORROWER (fresh, to walk the application) |
+
+This is a demo system with shared, published credentials: don't enter real personal data.
+
+## Deployment
+
+Atlas + Render (API) and Vercel (web app): see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). The API's endpoints are listed in [docs/API.md](docs/API.md).
 
 ## Quality checks
 

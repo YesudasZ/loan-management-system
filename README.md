@@ -82,14 +82,19 @@ npm run dev --prefix frontend
 
 All seeded accounts use the password `Password@123`.
 
-| Email                  | Role                                      |
-| ---------------------- | ----------------------------------------- |
-| `admin@lms.dev`        | ADMIN (every dashboard module)            |
-| `sales@lms.dev`        | SALES                                     |
-| `sanction@lms.dev`     | SANCTION                                  |
-| `disbursement@lms.dev` | DISBURSEMENT                              |
-| `collection@lms.dev`   | COLLECTION                                |
-| `borrower@lms.dev`     | BORROWER (fresh, to walk the application) |
+| Email                                            | Role                                              |
+| ------------------------------------------------ | ------------------------------------------------- |
+| `admin@lms.dev`                                  | ADMIN (every dashboard module)                    |
+| `sales@lms.dev`                                  | SALES                                             |
+| `sanction@lms.dev`                               | SANCTION                                          |
+| `disbursement@lms.dev`                           | DISBURSEMENT                                      |
+| `collection@lms.dev`                             | COLLECTION                                        |
+| `borrower@lms.dev`                               | BORROWER (fresh, to walk the application)         |
+| `lead.new@lms.dev`                               | BORROWER: registered, no details yet (Sales lead) |
+| `lead.brefail@lms.dev`                           | BORROWER: failed the BRE (age 21, unemployed)     |
+| `lead.noslip@lms.dev`                            | BORROWER: eligible, no salary slip yet            |
+| `lead.ready@lms.dev`                             | BORROWER: eligible with a slip, hasn't applied    |
+| `demo.applied1@lms.dev`, `demo.applied2@lms.dev` | BORROWER: loan APPLIED (Sanction queue)           |
 
 This is a demo system with shared, published credentials: don't enter real personal data.
 

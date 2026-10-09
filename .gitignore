@@ -1,0 +1,21 @@
+# Dependencies and build output
+node_modules/
+dist/
+coverage/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# Environment files (only the examples are committed)
+.env
+.env.*
+!.env.example
+
+# Assignment brief: kept locally, never committed
+LMS_Assignment.pdf
+
+# Tooling and OS noise
+.vercel/
+*.log
+.DS_Store

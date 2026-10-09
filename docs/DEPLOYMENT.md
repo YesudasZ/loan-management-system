@@ -158,3 +158,13 @@ cd backend && MONGODB_URI='<prod connection string>' NODE_ENV=production npm run
 ```
 
 **Send me:** the Vercel production URL, the results of checks 1–7, and the `TRUST_PROXY_HOPS` value you ended with.
+
+**Result (2026-10-10):** the web app is live at https://loan-management-system-beta-pearl.vercel.app, and Render's `CORS_ORIGINS` includes it.
+
+The first sign-up attempt returned 403 `INVALID_ORIGIN`, because Render was still running with the old `CORS_ORIGINS`. Saving the variable alone doesn't restart the service; it needs **Save, rebuild, and deploy**. After redeploying, the checks passed through the Vercel URL:
+
+- A POST with the app's own Origin → 200; a POST with a foreign Origin → 403 `INVALID_ORIGIN`.
+- `GET /api/v1/auth/me` without a session → 401 with `cache-control: no-store` and `x-vercel-cache: MISS`.
+- `/dashboard` while anonymous → 307 to `/login?next=%2Fdashboard`.
+
+`TRUST_PROXY_HOPS` is still `1`. It needs to be measured from the Render log (step 5) and is tracked in PROGRESS.md.

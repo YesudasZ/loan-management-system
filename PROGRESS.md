@@ -6,8 +6,8 @@ One entry per merged branch, newest last. Each entry says what changed and how t
 | --- | ------------------------------ | ----------------------- |
 | 1   | `chore/repo-setup`             | merged                  |
 | 2   | `feat/backend-foundation-auth` | merged                  |
-| 3   | `feat/frontend-foundation`     | in review               |
-| 4   | `feat/borrower-journey`        | planned                 |
+| 3   | `feat/frontend-foundation`     | merged                  |
+| 4   | `feat/borrower-journey`        | in review               |
 | 5   | `feat/operations-modules`      | planned (E2E milestone) |
 | 6   | `feat/sales-admin-overview`    | planned                 |
 | 7   | `test/rbac-security-hardening` | planned                 |
@@ -93,3 +93,9 @@ One entry per merged branch, newest last. Each entry says what changed and how t
 6. Visit `/login?next=//evil.com` and log in. You stay on the app (your home page).
 7. Sign up a new account. You land on `/apply` as a borrower.
 8. Checkpoint B on Vercel: follow docs/DEPLOYMENT.md "Checkpoint B".
+
+**Checkpoint B passed (2026-10-10).** The web app is live at https://loan-management-system-beta-pearl.vercel.app (API: https://loan-management-system-wl8j.onrender.com).
+
+- A first sign-up failed with 403 `INVALID_ORIGIN` until Render was redeployed with the new `CORS_ORIGINS`.
+- Verified through Vercel: own-origin POST → 200, foreign-origin POST → 403, `/auth/me` → 401 with `no-store` (`x-vercel-cache: MISS`), anonymous `/dashboard` → redirect to login. You confirmed the role logins and redirects.
+- **Open item:** `TRUST_PROXY_HOPS` is still `1`. Measure it from the Render log line of a login through Vercel (docs/DEPLOYMENT.md, checkpoint B step 5) before the rate limits are relied on.

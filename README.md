@@ -98,7 +98,7 @@ This is a demo system with shared, published credentials: don't enter real perso
 | Piece            | URL                                                                  |
 | ---------------- | -------------------------------------------------------------------- |
 | API (Render)     | https://loan-management-system-wl8j.onrender.com (health: `/health`) |
-| Web app (Vercel) | added at checkpoint B                                                |
+| Web app (Vercel) | https://loan-management-system-beta-pearl.vercel.app                 |
 
 Atlas + Render (API) and Vercel (web app): see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). On Render's free tier the API sleeps after about 15 minutes idle; the first request can take about a minute. The API's endpoints are listed in [docs/API.md](docs/API.md).
 

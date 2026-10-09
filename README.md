@@ -66,6 +66,14 @@ Tests never touch Atlas; they start an in-memory MongoDB replica set (downloaded
 
 ### Frontend
 
+Copy the example env file. `BACKEND_URL` points at the local API, and `JWT_SECRET` must equal the backend's:
+
+```bash
+cp frontend/.env.example frontend/.env.local
+```
+
+Start the web app on http://localhost:3000. It proxies `/api/*` to the backend, so run both:
+
 ```bash
 npm run dev --prefix frontend
 ```
@@ -87,7 +95,12 @@ This is a demo system with shared, published credentials: don't enter real perso
 
 ## Deployment
 
-Atlas + Render (API) and Vercel (web app): see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). The API's endpoints are listed in [docs/API.md](docs/API.md).
+| Piece            | URL                                                                  |
+| ---------------- | -------------------------------------------------------------------- |
+| API (Render)     | https://loan-management-system-wl8j.onrender.com (health: `/health`) |
+| Web app (Vercel) | added at checkpoint B                                                |
+
+Atlas + Render (API) and Vercel (web app): see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). On Render's free tier the API sleeps after about 15 minutes idle; the first request can take about a minute. The API's endpoints are listed in [docs/API.md](docs/API.md).
 
 ## Quality checks
 

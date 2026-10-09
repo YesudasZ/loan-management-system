@@ -71,10 +71,90 @@ Then confirm a login works on Render:
 curl -s -H 'Content-Type: application/json' -d '{"email":"admin@lms.dev","password":"Password@123"}' https://<your-service>.onrender.com/api/v1/auth/login
 ```
 
-**Send me:** the Render service URL, and whether you used the outbound ranges or `0.0.0.0/0`.
+**Result (2026-10-10):** the API is live at https://loan-management-system-wl8j.onrender.com (`/health` → 200). Atlas network access currently allows `0.0.0.0/0`, because the free instance needs it; the database is protected by its password and TLS.
 
 ---
 
 ## Checkpoint B: Vercel
 
-Added in `feat/frontend-foundation`.
+The web app proxies `/api/*` to Render, so the browser only ever talks to the Vercel domain and the session cookie stays first-party.
+
+You need:
+
+- the Render URL: `https://loan-management-system-wl8j.onrender.com`
+- the **same** `JWT_SECRET` value you set on Render
+
+### 1. Import the project
+
+1. Sign in at https://vercel.com with **GitHub**. If asked which repositories Vercel may access, choose **Only select repositories** → `YesudasZ/loan-management-system`.
+2. **Add New… → Project** → **Import** next to `loan-management-system`.
+3. On **Configure Project**:
+   - **Project Name:** `lms` (or any name; it becomes `<name>.vercel.app`, or a variant if taken).
+   - **Framework Preset:** Next.js (detected automatically).
+   - **Root Directory:** click **Edit** → choose `frontend` → **Continue**. This is required; the repo root has no app.
+   - Leave **Build and Output Settings** at their defaults.
+   - **Environment Variables:** add both, then click **Deploy**:
+
+     | Key           | Value                                                                  |
+     | ------------- | ---------------------------------------------------------------------- |
+     | `BACKEND_URL` | `https://loan-management-system-wl8j.onrender.com` (no trailing slash) |
+     | `JWT_SECRET`  | exactly the value of `JWT_SECRET` on Render                            |
+
+   The build fails with a clear message if either is missing or `JWT_SECRET` is shorter than 32 characters.
+
+4. When it says **Congratulations**, open the project **Settings → Domains** and note the production domain (`https://<name>.vercel.app`). Use this domain everywhere below, not the long per-deployment URL.
+
+### 2. Lock down the settings
+
+1. **Settings → Environment Variables:** for `BACKEND_URL` and `JWT_SECRET`, open **⋯ → Edit**, keep only **Production** ticked, turn on **Sensitive** for `JWT_SECRET`, then **Save**.
+2. **Settings → Git → Ignored Build Step:** choose **Only build production**, then **Save**. If that option isn't shown, choose **Custom** and enter `if [ "$VERCEL_ENV" = "production" ]; then exit 1; else exit 0; fi` (exit 1 = build). Preview deployments would have no secrets and an origin the API rejects.
+3. **Settings → Build and Deployment → Node.js Version:** `24.x` (also set by `engines` in `package.json`).
+
+### 3. Allow the Vercel origin on Render
+
+Render → **lms-api → Environment**:
+
+- `CORS_ORIGINS` = `https://<name>.vercel.app,http://localhost:3000`
+
+Then **Save, rebuild, and deploy**. Wait for **Live**. Without this, every login through Vercel gets 403 `INVALID_ORIGIN`.
+
+### 4. Checks
+
+Open the Vercel URL in a private window. If the API is asleep, a "Waking up the server" banner may show for up to a minute.
+
+1. `https://<name>.vercel.app/` redirects to `/login`.
+2. Log in as `admin@lms.dev` / `Password@123`. You land on **Overview** with all four modules in the sidebar.
+3. DevTools → **Application → Cookies → https://\<name>.vercel.app**: `lms_token` has **HttpOnly** ✓, **Secure** ✓, **SameSite Lax**, and the domain is the Vercel domain.
+4. **Log out**, then log in as `sanction@lms.dev`. You land on `/dashboard/sanction`. Type `/dashboard/collection` and `/apply` in the address bar; both show the **403** page.
+5. Log in as `borrower@lms.dev`. You land on `/apply`. Typing `/dashboard` shows the 403 page.
+6. In a terminal, check the Origin rule through the proxy:
+
+   ```bash
+   curl -s -X POST -H 'Origin: https://evil.example' https://<name>.vercel.app/api/v1/auth/logout
+   ```
+
+   This should return `{"success":false,"error":{"code":"INVALID_ORIGIN",...}}`.
+
+7. Check nothing is cached by Vercel's CDN:
+
+   ```bash
+   curl -sI https://<name>.vercel.app/api/v1/auth/me
+   ```
+
+   You should see `cache-control: no-store`, and `x-vercel-cache` must not be `HIT`.
+
+### 5. Measure `TRUST_PROXY_HOPS` (rate limits need the real client IP)
+
+1. Find your public IP: open https://api.ipify.org.
+2. Log in once through the Vercel URL.
+3. Render → **lms-api → Logs**, search `auth/login`, and open the newest line. Note `"clientIp"` and `"x-forwarded-for"`.
+4. If `clientIp` equals your public IP, you're done. Otherwise count the addresses that come **after** your IP in `x-forwarded-for`, add 1, and set `TRUST_PROXY_HOPS` on Render to that number (**Save, rebuild, and deploy**). Repeat the login and confirm `clientIp` is now your IP.
+5. If unsure, send me the `clientIp` and `x-forwarded-for` values (not cookies).
+
+### 6. Seed production (if not done at checkpoint A)
+
+```bash
+cd backend && MONGODB_URI='<prod connection string>' NODE_ENV=production npm run seed -- --force
+```
+
+**Send me:** the Vercel production URL, the results of checks 1–7, and the `TRUST_PROXY_HOPS` value you ended with.

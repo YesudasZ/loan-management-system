@@ -1,0 +1,47 @@
+name: PR title
+
+# Squash-merge uses the PR title as the commit message on main, so it must be a Conventional Commit.
+on:
+  pull_request_target:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  pull-requests: read
+
+jobs:
+  conventional-title:
+    name: Conventional PR title
+    # Dependabot titles can exceed the 72-character limit; they are exempt (see docs/DECISIONS.md).
+    if: github.event.pull_request.user.login != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: amannn/action-semantic-pull-request@v6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            chore
+            docs
+            test
+            refactor
+            perf
+            ci
+            style
+          scopes: |
+            backend
+            frontend
+            auth
+            bre
+            loan
+            payment
+            rbac
+            upload
+            seed
+            ci
+            docs
+            deps
+          requireScope: false
+          subjectPattern: ^(?![A-Z]).+$
+          subjectPatternError: 'The subject "{subject}" must start with a lowercase letter.'

@@ -10,7 +10,15 @@ export type ErrorCode =
   | 'PAYLOAD_TOO_LARGE'
   | 'RATE_LIMITED'
   | 'INTERNAL_ERROR'
-  | 'DATABASE_UNAVAILABLE';
+  | 'DATABASE_UNAVAILABLE'
+  | 'BRE_FAILED'
+  | 'PROFILE_INCOMPLETE'
+  | 'ACTIVE_LOAN_EXISTS'
+  | 'INVALID_STATUS_TRANSITION'
+  | 'FILE_REQUIRED'
+  | 'INVALID_UPLOAD'
+  | 'FILE_TOO_LARGE'
+  | 'UNSUPPORTED_FILE_TYPE';
 
 /**
  * An expected, client-facing error. Services throw it; the central error handler turns it

@@ -14,7 +14,10 @@ import { logger } from './config/logger.js';
 import { errorHandler, notFoundHandler } from './middleware/error-handler.js';
 import { verifyOrigin } from './middleware/verify-origin.js';
 import { createAuthRouter } from './modules/auth/auth.routes.js';
+import { borrowerRouter } from './modules/borrower/borrower.routes.js';
 import { healthRouter } from './modules/health/health.routes.js';
+import { loansRouter } from './modules/loans/loans.routes.js';
+import { uploadsRouter } from './modules/uploads/uploads.routes.js';
 
 interface AppOptions {
   /** Tests pass small limits to exercise the 429 path quickly. */
@@ -53,6 +56,9 @@ export function createApp(options: AppOptions = {}): Express {
 
   app.use(healthRouter);
   app.use(API_PREFIX, createAuthRouter(options.authRateLimits ?? AUTH_RATE_LIMITS));
+  app.use(API_PREFIX, borrowerRouter);
+  app.use(API_PREFIX, uploadsRouter);
+  app.use(API_PREFIX, loansRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

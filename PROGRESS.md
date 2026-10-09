@@ -6,8 +6,8 @@ One entry per merged branch, newest last. Each entry says what changed and how t
 | --- | ------------------------------ | ----------------------- |
 | 1   | `chore/repo-setup`             | merged                  |
 | 2   | `feat/backend-foundation-auth` | merged                  |
-| 3   | `feat/frontend-foundation`     | in review               |
-| 4   | `feat/borrower-journey`        | planned                 |
+| 3   | `feat/frontend-foundation`     | merged                  |
+| 4   | `feat/borrower-journey`        | in review               |
 | 5   | `feat/operations-modules`      | planned (E2E milestone) |
 | 6   | `feat/sales-admin-overview`    | planned                 |
 | 7   | `test/rbac-security-hardening` | planned                 |
@@ -93,3 +93,60 @@ One entry per merged branch, newest last. Each entry says what changed and how t
 6. Visit `/login?next=//evil.com` and log in. You stay on the app (your home page).
 7. Sign up a new account. You land on `/apply` as a borrower.
 8. Checkpoint B on Vercel: follow docs/DEPLOYMENT.md "Checkpoint B".
+
+**Checkpoint B passed (2026-10-10).** The web app is live at https://loan-management-system-beta-pearl.vercel.app (API: https://loan-management-system-wl8j.onrender.com).
+
+- A first sign-up failed with 403 `INVALID_ORIGIN` until Render was redeployed with the new `CORS_ORIGINS`.
+- Verified through Vercel: own-origin POST → 200, foreign-origin POST → 403, `/auth/me` → 401 with `no-store` (`x-vercel-cache: MISS`), anonymous `/dashboard` → redirect to login. You confirmed the role logins and redirects.
+- **Open item:** `TRUST_PROXY_HOPS` is still `1`. Measure it from the Render log line of a login through Vercel (docs/DEPLOYMENT.md, checkpoint B step 5) before the rate limits are relied on.
+
+## 4. `feat/borrower-journey`
+
+**What changed**
+
+- **BRE** (`utils/bre.ts`, mirrored in `frontend/src/lib/bre.ts`): age 23–50 from the exact date of birth (IST calendar date; 29 Feb handled), salary ≥ ₹25,000, PAN `^[A-Z]{5}[0-9]{4}[A-Z]$` after trim and uppercase, not unemployed. It returns **every** failure, in a fixed order.
+- **Profile:** `PUT /api/v1/borrower/profile` saves the profile and runs the BRE (200 eligible / 422 `BRE_FAILED` with all failures, profile still saved). `GET /api/v1/borrower/progress` resumes the wizard from the right step.
+- **Salary slip:** `POST/GET /api/v1/borrower/salary-slip`. PDF/JPG/PNG up to 5 MB, with extension, declared type and magic bytes all checked. Stored in GridFS under a generated name; owner-only download with safe headers.
+- **Apply:** `POST /api/v1/borrower/loans` takes only `{ principal, tenureDays }`. The server calculates SI = round(P × 12 × T / 36500) and the total, re-runs the BRE, snapshots the applicant and slip, and creates an APPLIED loan. One active loan per borrower is enforced by a pre-check and a partial unique index (race-safe).
+- **Loan state machine** (`utils/loan-state-machine.ts`) with every transition tested. The operations modules use it in branch 5.
+- **Frontend wizard:**
+  - Personal details, with a live eligibility preview; the server's 422 lists the failures.
+  - Salary slip upload.
+  - Loan sliders: keyboard-accessible, `aria-valuetext`, a debounced screen-reader announcement, and a live calculation panel.
+  - Status page: amounts, outstanding, timeline, rejection reason, "Apply again".
+  - The step bar resumes at the right step, and editing is locked while a loan is active.
+- **Seed:** demo leads (new, BRE-failed, no slip, ready) and two APPLIED loans with generated PDF slips, all created through the real services.
+- **Tests:** backend 138 (BRE and loan-math shared vectors, state machine, dates, profile/BRE, uploads incl. spoofed files and 413, apply incl. client totals → 400, the concurrent-apply race, the apply-time BRE re-check, borrower-only RBAC). Frontend 76 (the same BRE and loan-math vectors, wizard redirects, formatting).
+- **Verified locally in the browser:**
+  - signup → age 21 shows the server 422 → fixed → eligible → slip uploaded → ₹1,50,000 for 90 days (₹4,438.36 interest) → APPLIED status page
+  - resume and locking redirects
+  - the 375 px layout
+
+**Manual test steps**
+
+Locally, after `npm run seed --prefix backend` with both apps running:
+
+1. Sign up a new borrower. You land on **Personal details**.
+2. Enter a date of birth that makes you 21, a salary of 45000, PAN `ABCDE1234F`, Salaried. The preview flags age. Click continue: a red box lists "You must be at least 23 years old (you are 21)".
+3. Change the date of birth to 1995, then continue. You see a toast and step 2.
+4. Upload a PDF, JPG or PNG under 5 MB. "View slip" opens it. Try renaming a .txt to .pdf: it's rejected.
+5. Continue. The sliders default to ₹1,00,000 / 90 days → interest ₹2,958.90, total ₹1,02,958.90. Try the arrow keys on the sliders.
+6. Apply. The status page shows APPLIED with the timeline.
+7. Open `/apply/profile`: you're sent back to the status page (locked while the loan is active).
+8. Log in as `lead.brefail@lms.dev`: you land on Personal details with the saved failures shown.
+
+**Deploy checks after the merge** (Vercel builds `main`; Render redeploys after CI):
+
+1. Re-run the production seed (`MONGODB_URI='<prod>' NODE_ENV=production npm run seed -- --force` from `backend/`) so the new demo borrowers exist.
+2. Upload-size check through Vercel, from any folder (`V` = the Vercel URL):
+
+   ```bash
+   V=https://loan-management-system-beta-pearl.vercel.app
+   python3 -c "open('slip-4.9mb.pdf','wb').write(b'%PDF-1.4\n' + b'0' * 4_900_000)"
+   python3 -c "open('slip-5.1mb.pdf','wb').write(b'%PDF-1.4\n' + b'0' * 5_300_000)"
+   curl -s -c jar -H 'Content-Type: application/json' -H "Origin: $V" -d '{"email":"lead.noslip@lms.dev","password":"Password@123"}' $V/api/v1/auth/login
+   curl -s -b jar -H "Origin: $V" -F 'file=@slip-4.9mb.pdf;type=application/pdf' $V/api/v1/borrower/salary-slip
+   curl -s -b jar -H "Origin: $V" -F 'file=@slip-5.1mb.pdf;type=application/pdf' $V/api/v1/borrower/salary-slip
+   ```
+
+   Expected: the 4.9 MB upload → `{"success":true,...}`; the 5.1 MB upload → our JSON `FILE_TOO_LARGE`. If either returns a Vercel error page instead, send it to me (fallback plan in PLAN.md).

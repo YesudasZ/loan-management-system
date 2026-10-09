@@ -1,0 +1,203 @@
+{
+  "description": "Shared BRE test vectors. Used by backend/tests/unit/bre.test.ts AND frontend/src/lib/bre.test.ts, so the client mirror is proven to match the server.",
+  "cases": [
+    {
+      "name": "eligible applicant",
+      "today": "2026-10-10",
+      "input": {
+        "dateOfBirth": "1995-06-15",
+        "monthlySalary": 5000000,
+        "pan": "ABCDE1234F",
+        "employmentMode": "SALARIED"
+      },
+      "failedRules": []
+    },
+    {
+      "name": "turns 23 today",
+      "today": "2026-10-10",
+      "input": {
+        "dateOfBirth": "2003-10-10",
+        "monthlySalary": 5000000,
+        "pan": "ABCDE1234F",
+        "employmentMode": "SALARIED"
+      },
+      "failedRules": []
+    },
+    {
+      "name": "one day short of 23",
+      "today": "2026-10-10",
+      "input": {
+        "dateOfBirth": "2003-10-11",
+        "monthlySalary": 5000000,
+        "pan": "ABCDE1234F",
+        "employmentMode": "SALARIED"
+      },
+      "failedRules": ["AGE"]
+    },
+    {
+      "name": "50 years and 364 days",
+      "today": "2026-10-10",
+      "input": {
+        "dateOfBirth": "1975-10-11",
+        "monthlySalary": 5000000,
+        "pan": "ABCDE1234F",
+        "employmentMode": "SALARIED"
+      },
+      "failedRules": []
+    },
+    {
+      "name": "turns 51 today",
+      "today": "2026-10-10",
+      "input": {
+        "dateOfBirth": "1975-10-10",
+        "monthlySalary": 5000000,
+        "pan": "ABCDE1234F",
+        "employmentMode": "SALARIED"
+      },
+      "failedRules": ["AGE"]
+    },
+    {
+      "name": "29 Feb birthday, day before 23rd birthday in a non-leap year",
+      "today": "2027-02-28",
+      "input": {
+        "dateOfBirth": "2004-02-29",
+        "monthlySalary": 5000000,
+        "pan": "ABCDE1234F",
+        "employmentMode": "SALARIED"
+      },
+      "failedRules": ["AGE"]
+    },
+    {
+      "name": "29 Feb birthday counts as reached on 1 March",
+      "today": "2027-03-01",
+      "input": {
+        "dateOfBirth": "2004-02-29",
+        "monthlySalary": 5000000,
+        "pan": "ABCDE1234F",
+        "employmentMode": "SALARIED"
+      },
+      "failedRules": []
+    },
+    {
+      "name": "date of birth in the future",
+      "today": "2026-10-10",
+      "input": {
+        "dateOfBirth": "2030-01-01",
+        "monthlySalary": 5000000,
+        "pan": "ABCDE1234F",
+        "employmentMode": "SALARIED"
+      },
+      "failedRules": ["AGE"]
+    },
+    {
+      "name": "salary one paisa below ₹25,000",
+      "today": "2026-10-10",
+      "input": {
+        "dateOfBirth": "1995-06-15",
+        "monthlySalary": 2499999,
+        "pan": "ABCDE1234F",
+        "employmentMode": "SALARIED"
+      },
+      "failedRules": ["SALARY"]
+    },
+    {
+      "name": "salary exactly ₹25,000",
+      "today": "2026-10-10",
+      "input": {
+        "dateOfBirth": "1995-06-15",
+        "monthlySalary": 2500000,
+        "pan": "ABCDE1234F",
+        "employmentMode": "SALARIED"
+      },
+      "failedRules": []
+    },
+    {
+      "name": "lowercase PAN with spaces is accepted after trim + uppercase",
+      "today": "2026-10-10",
+      "input": {
+        "dateOfBirth": "1995-06-15",
+        "monthlySalary": 5000000,
+        "pan": "  abcde1234f ",
+        "employmentMode": "SALARIED"
+      },
+      "failedRules": []
+    },
+    {
+      "name": "PAN with only four letters",
+      "today": "2026-10-10",
+      "input": {
+        "dateOfBirth": "1995-06-15",
+        "monthlySalary": 5000000,
+        "pan": "ABCD1234F",
+        "employmentMode": "SALARIED"
+      },
+      "failedRules": ["PAN"]
+    },
+    {
+      "name": "PAN ending in a digit",
+      "today": "2026-10-10",
+      "input": {
+        "dateOfBirth": "1995-06-15",
+        "monthlySalary": 5000000,
+        "pan": "ABCDE12345",
+        "employmentMode": "SALARIED"
+      },
+      "failedRules": ["PAN"]
+    },
+    {
+      "name": "PAN starting with a digit",
+      "today": "2026-10-10",
+      "input": {
+        "dateOfBirth": "1995-06-15",
+        "monthlySalary": 5000000,
+        "pan": "1BCDE1234F",
+        "employmentMode": "SALARIED"
+      },
+      "failedRules": ["PAN"]
+    },
+    {
+      "name": "PAN that is too long",
+      "today": "2026-10-10",
+      "input": {
+        "dateOfBirth": "1995-06-15",
+        "monthlySalary": 5000000,
+        "pan": "ABCDE1234FG",
+        "employmentMode": "SALARIED"
+      },
+      "failedRules": ["PAN"]
+    },
+    {
+      "name": "self-employed is eligible",
+      "today": "2026-10-10",
+      "input": {
+        "dateOfBirth": "1995-06-15",
+        "monthlySalary": 5000000,
+        "pan": "ABCDE1234F",
+        "employmentMode": "SELF_EMPLOYED"
+      },
+      "failedRules": []
+    },
+    {
+      "name": "unemployed",
+      "today": "2026-10-10",
+      "input": {
+        "dateOfBirth": "1995-06-15",
+        "monthlySalary": 5000000,
+        "pan": "ABCDE1234F",
+        "employmentMode": "UNEMPLOYED"
+      },
+      "failedRules": ["EMPLOYMENT"]
+    },
+    {
+      "name": "every rule fails, all reported in a fixed order",
+      "today": "2026-10-10",
+      "input": {
+        "dateOfBirth": "2010-01-01",
+        "monthlySalary": 1000000,
+        "pan": "BAD",
+        "employmentMode": "UNEMPLOYED"
+      },
+      "failedRules": ["AGE", "SALARY", "PAN", "EMPLOYMENT"]
+    }
+  ]
+}

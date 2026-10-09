@@ -60,3 +60,16 @@ Short entries: the decision and the reason. Newest decisions are added at the bo
 42. **The API client retries GET requests for about 90 s when the API is unreachable or answers with non-JSON** (Render free-tier cold start) and shows a "Waking up the server" banner. Mutations never retry automatically.
 43. **The backend logs `clientIp` (`req.ip`) on every request.** It is used to measure `TRUST_PROXY_HOPS` on the deployed Vercel → Render path.
 44. **One `CurrentUserProvider` per authenticated layout** loads `/auth/me` once per page load. The cookie is httpOnly, so that's the only way the UI learns the user's name and role.
+
+## Borrower journey (branch 4)
+
+45. **A failed BRE is saved and still returns 422.** Sales sees "BRE failed" leads, while the borrower gets every failure at once and stays blocked until the details pass.
+46. **Format checks are 400s; eligibility rules are the BRE's (422).** zod only checks shape (date valid and not in the future, salary an integer, known employment mode). A badly formatted PAN is a BRE failure, so it's reported together with any other failed rules.
+47. **The BRE runs again on apply, with today's date.** Age changes over time. A new failure is saved to the profile, and the wizard sends the borrower back to their details.
+48. **The client BRE mirror never blocks submission.** It shows a live preview; the server always decides. The BRE and loan-math mirrors are tested against the same JSON vectors as the backend (`backend/tests/fixtures`), which proves they match.
+49. **The applicant details and salary slip are snapshotted onto the loan** at apply time, so later profile edits don't rewrite an application. The slip snapshot includes its type, so the sanction viewer can pick `<iframe>` or `<img>`.
+50. **Status history stores the actor's role (`byRole`)** as well as their id, so borrowers see "approved by the sanction team" without receiving staff ids.
+51. **Wizard resume:** once a borrower has any loan, the status page is their home. While a loan is active (APPLIED, SANCTIONED or DISBURSED) the details and slip are locked; after REJECTED or CLOSED, "Apply again" opens the loan step.
+52. **Salary slips: multer memory storage with tight limits (1 file, 0 fields, 5 MB) and no fileFilter.** The extension, the declared type and the magic bytes (`file-type`) are checked after upload and must all agree. Files go to GridFS under a generated name. A replaced slip is deleted unless a loan application still points at it.
+53. **Slips are served with their own CSP** (`default-src 'none'; object-src 'self'; frame-ancestors 'self'`), `nosniff` and `private, no-store`, replacing helmet's default (whose `object-src 'none'` can blank Chrome's PDF viewer).
+54. **The seed builds demo borrowers through the real services** (`saveProfile`, `uploadSalarySlip`, `applyForLoan`), so demo data always follows the same rules as the app. Demo slips are generated one-page PDFs.

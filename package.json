@@ -1,0 +1,27 @@
+{
+  "name": "loan-management-system",
+  "private": true,
+  "type": "module",
+  "description": "Repo tooling only (git hooks, commit linting, formatting). The apps live in backend/ and frontend/.",
+  "engines": {
+    "node": "24.x"
+  },
+  "scripts": {
+    "prepare": "husky",
+    "lint": "npm run lint --prefix backend && npm run lint --prefix frontend",
+    "typecheck": "npm run typecheck --prefix backend && npm run typecheck --prefix frontend",
+    "test": "npm test --prefix backend && npm test --prefix frontend",
+    "build": "npm run build --prefix backend && npm run build --prefix frontend",
+    "audit": "npm audit --audit-level=high && npm audit --audit-level=high --prefix backend && npm audit --audit-level=high --prefix frontend",
+    "secrets": "gitleaks git --redact --verbose .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@commitlint/cli": "21.2.3",
+    "@commitlint/config-conventional": "21.2.3",
+    "husky": "9.1.7",
+    "lint-staged": "17.6.0",
+    "prettier": "3.9.9"
+  }
+}

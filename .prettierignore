@@ -1,0 +1,9 @@
+**/node_modules
+**/dist
+**/.next
+**/coverage
+**/package-lock.json
+frontend/next-env.d.ts
+LMS_Assignment.pdf
+# Project rules file, kept exactly as written
+CLAUDE.md

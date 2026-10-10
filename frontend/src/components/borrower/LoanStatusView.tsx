@@ -49,8 +49,14 @@ function Amount({
   );
 }
 
-export function LoanStatusView({ loan }: { loan: BorrowerLoan }) {
-  const canApplyAgain = loan.status === 'REJECTED' || loan.status === 'CLOSED';
+interface LoanStatusViewProps {
+  loan: BorrowerLoan;
+  /** "Apply again" only makes sense on the latest loan, not when browsing past ones. */
+  showNextSteps?: boolean;
+}
+
+export function LoanStatusView({ loan, showNextSteps = true }: LoanStatusViewProps) {
+  const canApplyAgain = showNextSteps && (loan.status === 'REJECTED' || loan.status === 'CLOSED');
 
   return (
     <div className="flex flex-col gap-6">

@@ -1,10 +1,41 @@
 'use client';
 
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { AuthenticatedPage } from '@/components/AuthenticatedPage';
 import { LogoutButton } from '@/components/auth/LogoutButton';
+import { isUnder, MY_LOANS_PATH } from '@/lib/route-access';
 
-/** Header + content area for the borrower portal. */
+function BorrowerNav() {
+  const pathname = usePathname();
+  const isMyLoans = isUnder(pathname, MY_LOANS_PATH);
+  const links = [
+    { href: '/apply', label: 'My application', isCurrent: !isMyLoans },
+    { href: MY_LOANS_PATH, label: 'My loans', isCurrent: isMyLoans },
+  ];
+
+  return (
+    <nav aria-label="Borrower" className="mx-auto flex max-w-3xl gap-1 px-4">
+      {links.map((link) => (
+        <Link
+          key={link.href}
+          href={link.href}
+          aria-current={link.isCurrent ? 'page' : undefined}
+          className={`border-b-2 px-3 py-2 text-sm font-medium ${
+            link.isCurrent
+              ? 'border-indigo-600 text-indigo-700'
+              : 'border-transparent text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          {link.label}
+        </Link>
+      ))}
+    </nav>
+  );
+}
+
+/** Header (with the borrower's two sections) + content area for the borrower portal. */
 export function BorrowerShell({ children }: { children: ReactNode }) {
   return (
     <AuthenticatedPage>
@@ -18,6 +49,7 @@ export function BorrowerShell({ children }: { children: ReactNode }) {
                 <LogoutButton />
               </div>
             </div>
+            <BorrowerNav />
           </header>
           <main id="main-content" className="mx-auto w-full max-w-3xl flex-1 px-4 py-8">
             {children}

@@ -56,7 +56,7 @@ interface Context {
 
 interface EndpointCase {
   name: string;
-  method: 'get' | 'post' | 'put';
+  method: 'get' | 'post' | 'put' | 'patch';
   /** Path used for denied cells (they fail before any lookup). */
   path: string;
   allowed: Role[];
@@ -267,6 +267,42 @@ const ENDPOINTS: EndpointCase[] = [
     successStatus: 200,
     prepareAllowed: () => Promise.resolve({ path: '/api/v1/dashboard/summary' }),
   },
+  {
+    name: 'GET /admin/users',
+    method: 'get',
+    path: '/api/v1/admin/users',
+    allowed: ['ADMIN'],
+    successStatus: 200,
+    prepareAllowed: () => Promise.resolve({ path: '/api/v1/admin/users' }),
+  },
+  {
+    name: 'POST /admin/users',
+    method: 'post',
+    path: '/api/v1/admin/users',
+    allowed: ['ADMIN'],
+    successStatus: 201,
+    prepareAllowed: () =>
+      Promise.resolve({
+        path: '/api/v1/admin/users',
+        body: {
+          name: 'Matrix Staff',
+          email: `matrix-staff${nextId()}@test.dev`,
+          password: 'Welcome123',
+          role: 'SALES',
+        },
+      }),
+  },
+  {
+    name: 'PATCH /admin/users/:userId/role',
+    method: 'patch',
+    path: `/api/v1/admin/users/${ANY_ID}/role`,
+    allowed: ['ADMIN'],
+    successStatus: 200,
+    prepareAllowed: async () => {
+      const target = await createTestUser('SALES', `matrix-target${nextId()}@test.dev`);
+      return { path: `/api/v1/admin/users/${target.id}/role`, body: { role: 'COLLECTION' } };
+    },
+  },
 ];
 
 function expectedStatus(endpoint: EndpointCase, identity: Identity): number {
@@ -318,7 +354,7 @@ describe('RBAC matrix: every protected endpoint × every identity', () => {
     });
   }
 
-  it('covers 18 protected endpoints × 7 identities', () => {
-    expect(ENDPOINTS.length * IDENTITIES.length).toBe(126);
+  it('covers 21 protected endpoints × 7 identities', () => {
+    expect(ENDPOINTS.length * IDENTITIES.length).toBe(147);
   });
 });

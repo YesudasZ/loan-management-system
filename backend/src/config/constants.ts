@@ -9,6 +9,15 @@ export const ROLES = [
   'BORROWER',
 ] as const;
 export type Role = (typeof ROLES)[number];
+/** Every role except BORROWER; only an admin can give someone one of these. */
+export const STAFF_ROLES = [
+  'ADMIN',
+  'SALES',
+  'SANCTION',
+  'DISBURSEMENT',
+  'COLLECTION',
+] as const satisfies readonly Role[];
+export type StaffRole = (typeof STAFF_ROLES)[number];
 
 export const API_PREFIX = '/api/v1';
 export const JSON_BODY_LIMIT = '100kb';
@@ -84,6 +93,7 @@ export const ALLOWED_UPLOAD_TYPES: Readonly<Record<string, string>> = {
 
 // Lists
 export const DEFAULT_PAGE_SIZE = 20;
+export const SEARCH_MAX_LENGTH = 100;
 export const MAX_PAGE_SIZE = 100;
 
 // Payments

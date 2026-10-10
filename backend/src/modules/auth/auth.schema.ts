@@ -8,9 +8,14 @@ import {
 const NAME_MIN_LENGTH = 2;
 const NAME_MAX_LENGTH = 80;
 
-const emailSchema = z.string().trim().toLowerCase().pipe(z.email('Enter a valid email address'));
+export const emailSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .pipe(z.email('Enter a valid email address'));
 
-const newPasswordSchema = z
+/** Password rules for any new account (sign-up and admin-created staff). */
+export const newPasswordSchema = z
   .string()
   .min(PASSWORD_MIN_LENGTH, `Password must be at least ${PASSWORD_MIN_LENGTH} characters`)
   .refine(
@@ -20,9 +25,11 @@ const newPasswordSchema = z
   .regex(/[A-Za-z]/, 'Password must contain a letter')
   .regex(/\d/, 'Password must contain a digit');
 
+export const nameSchema = z.string().trim().min(NAME_MIN_LENGTH).max(NAME_MAX_LENGTH);
+
 // Strict: unknown fields such as `role` are rejected, so sign-up can never create staff.
 export const signupBodySchema = z.strictObject({
-  name: z.string().trim().min(NAME_MIN_LENGTH).max(NAME_MAX_LENGTH),
+  name: nameSchema,
   email: emailSchema,
   password: newPasswordSchema,
 });

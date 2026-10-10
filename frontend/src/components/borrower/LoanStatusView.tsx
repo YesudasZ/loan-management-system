@@ -3,7 +3,7 @@ import { Alert } from '@/components/ui/Alert';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import type { Role } from '@/lib/constants';
 import { formatDateTime, formatInr } from '@/lib/format';
-import type { BorrowerLoan, LoanStatus } from '@/types/loan';
+import { isRepaymentDue, type BorrowerLoan, type LoanStatus } from '@/types/loan';
 
 const STATUS_EXPLANATIONS: Record<LoanStatus, string> = {
   APPLIED: 'Your application is with our sanction team for review.',
@@ -76,8 +76,12 @@ export function LoanStatusView({ loan, showNextSteps = true }: LoanStatusViewPro
           paise={loan.simpleInterest}
         />
         <Amount label="Total repayment" paise={loan.totalRepayment} isHighlighted />
-        <Amount label="Paid so far" paise={loan.totalPaid} />
-        <Amount label="Outstanding" paise={loan.outstanding} isHighlighted />
+        {isRepaymentDue(loan.status) && (
+          <>
+            <Amount label="Paid so far" paise={loan.totalPaid} />
+            <Amount label="Outstanding" paise={loan.outstanding} isHighlighted />
+          </>
+        )}
       </dl>
 
       <section aria-labelledby="timeline-heading">

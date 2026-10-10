@@ -10,8 +10,21 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useApiQuery } from '@/hooks/useApiQuery';
 import { formatDate, formatInr } from '@/lib/format';
 import { MY_LOANS_PATH } from '@/lib/route-access';
-import type { BorrowerLoan } from '@/types/loan';
+import { isRepaymentDue, type BorrowerLoan } from '@/types/loan';
 import type { Paginated } from '@/types/staff';
+
+/** Paid or outstanding amount, or a dash while nothing is owed (not disbursed, or rejected). */
+function OwedAmount({ loan, paise }: { loan: BorrowerLoan; paise: number }) {
+  if (!isRepaymentDue(loan.status)) {
+    return (
+      <>
+        <span aria-hidden="true">—</span>
+        <span className="sr-only">Nothing owed</span>
+      </>
+    );
+  }
+  return <>{formatInr(paise)}</>;
+}
 
 function ViewLink({ loan }: { loan: BorrowerLoan }) {
   return (
@@ -68,11 +81,15 @@ export function MyLoansList() {
               </div>
               <div>
                 <dt className="text-xs text-slate-500">Paid</dt>
-                <dd>{formatInr(loan.totalPaid)}</dd>
+                <dd>
+                  <OwedAmount loan={loan} paise={loan.totalPaid} />
+                </dd>
               </div>
               <div>
                 <dt className="text-xs text-slate-500">Outstanding</dt>
-                <dd className="font-semibold">{formatInr(loan.outstanding)}</dd>
+                <dd className="font-semibold">
+                  <OwedAmount loan={loan} paise={loan.outstanding} />
+                </dd>
               </div>
             </dl>
             <div className="mt-3">
@@ -85,52 +102,52 @@ export function MyLoansList() {
         <table className="min-w-full divide-y divide-slate-200 text-sm">
           <thead className="bg-slate-50 text-left text-xs font-semibold uppercase text-slate-500">
             <tr>
-              <th scope="col" className="px-4 py-3">
+              <th scope="col" className="px-3 py-3">
                 Applied
               </th>
-              <th scope="col" className="px-4 py-3 text-right">
+              <th scope="col" className="px-3 py-3 text-right">
                 Amount
               </th>
-              <th scope="col" className="hidden px-4 py-3 text-right md:table-cell">
-                Tenure
-              </th>
-              <th scope="col" className="px-4 py-3 text-right">
+              <th scope="col" className="px-3 py-3 text-right">
                 Total
               </th>
-              <th scope="col" className="hidden px-4 py-3 text-right md:table-cell">
+              <th scope="col" className="px-3 py-3 text-right">
                 Paid
               </th>
-              <th scope="col" className="px-4 py-3 text-right">
+              <th scope="col" className="px-3 py-3 text-right">
                 Outstanding
               </th>
-              <th scope="col" className="px-4 py-3">
+              <th scope="col" className="px-3 py-3">
                 Status
-              </th>
-              <th scope="col" className="px-4 py-3 text-right">
-                <span className="sr-only">Details</span>
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-slate-100 whitespace-nowrap">
             {data.items.map((loan) => (
               <tr key={loan.id}>
-                <td className="px-4 py-3 whitespace-nowrap">{formatDate(loan.createdAt)}</td>
-                <td className="px-4 py-3 text-right">{formatInr(loan.principal)}</td>
-                <td className="hidden px-4 py-3 text-right whitespace-nowrap md:table-cell">
-                  {loan.tenureDays} days
+                <td className="px-3 py-3">
+                  {/* The date opens the loan, so the table needs no extra column to fit. */}
+                  <Link
+                    href={`${MY_LOANS_PATH}/${loan.id}`}
+                    className="font-medium text-indigo-700 hover:underline"
+                  >
+                    {formatDate(loan.createdAt)}
+                    <span className="sr-only">: view this loan</span>
+                  </Link>
                 </td>
-                <td className="px-4 py-3 text-right">{formatInr(loan.totalRepayment)}</td>
-                <td className="hidden px-4 py-3 text-right md:table-cell">
-                  {formatInr(loan.totalPaid)}
+                <td className="px-3 py-3 text-right">
+                  <p>{formatInr(loan.principal)}</p>
+                  <p className="text-xs text-slate-500">{loan.tenureDays} days</p>
                 </td>
-                <td className="px-4 py-3 text-right font-semibold">
-                  {formatInr(loan.outstanding)}
+                <td className="px-3 py-3 text-right">{formatInr(loan.totalRepayment)}</td>
+                <td className="px-3 py-3 text-right">
+                  <OwedAmount loan={loan} paise={loan.totalPaid} />
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-3 py-3 text-right font-semibold">
+                  <OwedAmount loan={loan} paise={loan.outstanding} />
+                </td>
+                <td className="px-3 py-3">
                   <StatusBadge status={loan.status} />
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <ViewLink loan={loan} />
                 </td>
               </tr>
             ))}

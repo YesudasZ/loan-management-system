@@ -5,6 +5,11 @@ export type LoanStatus = 'APPLIED' | 'SANCTIONED' | 'REJECTED' | 'DISBURSED' | '
 
 export const ACTIVE_LOAN_STATUSES: readonly LoanStatus[] = ['APPLIED', 'SANCTIONED', 'DISBURSED'];
 
+/** Money is only owed once a loan is disbursed; before that (or if rejected) nothing is due. */
+export function isRepaymentDue(status: LoanStatus): boolean {
+  return status === 'DISBURSED' || status === 'CLOSED';
+}
+
 export type WizardStep = 'PROFILE' | 'SALARY_SLIP' | 'LOAN' | 'STATUS';
 
 export interface SalarySlip {

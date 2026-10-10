@@ -180,5 +180,5 @@ The first item expands the PDF into one checkbox per sentence, inserted below it
 ## Phase 2: Verification and report
 
 - [x] P1. Verifier re-checks every Critical and High (Confirmed / False positive + reason); spot-checks Medium/Low
-- [ ] P2. Write audit/AUDIT_REPORT.md (summary + go/no-go, PDF matrix, API × role matrix, findings, fix plan)
+- [x] P2. Write audit/AUDIT_REPORT.md (summary + go/no-go, PDF matrix, API × role matrix, findings, fix plan)
 - [ ] P3. Commit, push, open the docs-only PR; stop for approval

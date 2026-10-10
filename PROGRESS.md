@@ -20,6 +20,7 @@ One entry per merged branch, newest last. Each entry says what changed and how t
 | 14  | `docs/evaluator-guide`                       | merged                                   |
 | 15  | `docs/demo-video-link`                       | merged                                   |
 | 16  | `docs/final-readme-check`                    | merged (tagged `v1.1.0`)                 |
+| 17  | `docs/remove-public-credentials`             | merged                                   |
 
 ---
 
@@ -456,3 +457,7 @@ The `<VIDEO_LINK>` placeholders in the README and `docs/EVALUATOR_GUIDE.md` now 
 ## 16. `docs/final-readme-check`
 
 Final cross-check of the README against `LMS_Assignment.pdf`: a CI badge, a **Design questions from the brief** table answering every "Think about" question (PAN regex, BRE placement, sanction transitions, the status after disbursal, outstanding balance, payment validations, role storage, the middleware, HTTP statuses), and 503 in the status-code list. A fresh clone followed the README end to end (install, `.env` from the examples, seed, run, all 6 logins, tests, lint, typecheck, build) with no failing step.
+
+## 17. `docs/remove-public-credentials`
+
+Login credentials now live only in the Google Drive folder submitted with the assignment (PDF §6.3), not in the docs. README: the Submission section is just the live app, the Drive link ("Demo video & login credentials"), API health and the cold-start note; the credentials and demo-account tables are gone, and setup step 4 says the seed creates one account per role with credentials in the Drive folder. `docs/EVALUATOR_GUIDE.md` keeps the roles table and the 10-step flow without emails or passwords; `docs/TEST_ACCOUNTS.md`, `DEPLOYMENT.md`, `SECURITY.md` and `DECISIONS.md` no longer print a password. The seed and tests are unchanged, so the accounts and passwords stay the same. Older entries in this log, `PLAN.md` and the audit evidence still mention the demo passwords as a historical record.

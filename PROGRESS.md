@@ -18,6 +18,8 @@ One entry per merged branch, newest last. Each entry says what changed and how t
 | 12  | `chore/pre-submission-audit`                 | merged (report: `audit/AUDIT_REPORT.md`) |
 | 13  | Audit fixes (`fix/audit-*`, one branch each) | merged (#15–#19)                         |
 | 14  | `docs/evaluator-guide`                       | merged                                   |
+| 15  | `docs/demo-video-link`                       | merged                                   |
+| 16  | `docs/final-readme-check`                    | merged (tagged `v1.1.0`)                 |
 
 ---
 
@@ -446,3 +448,11 @@ One `fix/audit-*` branch per approved group, each with regression tests and the 
 ## 14. `docs/evaluator-guide`
 
 Submission prep, docs only. README starts with a **Submission** section (live app, demo video placeholder, the Render wake-up note, a credentials table for all 6 roles taken from `seed-demo.ts`, how to log out and switch roles) and links the new **`docs/EVALUATOR_GUIDE.md`**: the same credentials and a 10-step walkthrough of the full flow (signup → BRE fail/pass → slip → apply → approve → disburse → payments incl. duplicate UTR and overpayment → auto-close → borrower sees CLOSED → admin Overview and Staff).
+
+## 15. `docs/demo-video-link`
+
+The `<VIDEO_LINK>` placeholders in the README and `docs/EVALUATOR_GUIDE.md` now point to the Google Drive folder ("Demo video & login credentials").
+
+## 16. `docs/final-readme-check`
+
+Final cross-check of the README against `LMS_Assignment.pdf`: a CI badge, a **Design questions from the brief** table answering every "Think about" question (PAN regex, BRE placement, sanction transitions, the status after disbursal, outstanding balance, payment validations, role storage, the middleware, HTTP statuses), and 503 in the status-code list. A fresh clone followed the README end to end (install, `.env` from the examples, seed, run, all 6 logins, tests, lint, typecheck, build) with no failing step.

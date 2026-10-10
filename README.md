@@ -1,5 +1,7 @@
 # Loan Management System
 
+[![CI](https://github.com/YesudasZ/loan-management-system/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/YesudasZ/loan-management-system/actions/workflows/ci.yml)
+
 ## Submission
 
 - **Live app:** https://loan-management-system-beta-pearl.vercel.app
@@ -143,6 +145,20 @@ Why server _and_ client: the client mirror gives instant feedback, but anyone ca
 - The amount must be > 0 and ≤ outstanding (`totalRepayment − totalPaid`). The date can't be in the future or before disbursal. The loan must be DISBURSED.
 - The payment insert, the `totalPaid` increment and the auto-close happen in **one MongoDB transaction**. Concurrent payments can never overpay (tested).
 
+## Design questions from the brief
+
+| Question                                  | Answer                                                                                                                                                                                                                                                                                                              |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| What's the correct PAN regex?             | `^[A-Z]{5}[0-9]{4}[A-Z]$` (5 letters, 4 digits, 1 letter), checked after trimming and uppercasing                                                                                                                                                                                                                   |
+| BRE on the client, server or both? Why?   | Both. The server decides (and re-checks on apply), because anyone can call the API directly; the client mirror only gives instant feedback. Both run the same test vectors                                                                                                                                          |
+| What transitions happen in Sanction?      | `APPLIED → SANCTIONED` (approve) or `APPLIED → REJECTED` (reject, reason required); anything else is 409                                                                                                                                                                                                            |
+| What's the status after disbursement?     | `DISBURSED`: the loan moves to the Collection module                                                                                                                                                                                                                                                                |
+| How is the outstanding balance tracked?   | Each loan stores `totalRepayment` and a running `totalPaid` (paise), incremented in the same transaction that inserts the payment; outstanding = `totalRepayment − totalPaid`. When it reaches 0, the same transaction sets `CLOSED`                                                                                |
+| What validations on the payment amount?   | A whole number of paise, > 0 and ≤ outstanding (no overpayment, even with concurrent requests); UTR unique; date not in the future or before disbursal; the loan must be DISBURSED                                                                                                                                  |
+| How are roles stored?                     | One `role` per user, a string enum on the `users` document (`ADMIN`, `SALES`, `SANCTION`, `DISBURSEMENT`, `COLLECTION`, `BORROWER`). Signup always creates `BORROWER`; only an admin can assign staff roles                                                                                                         |
+| How does the middleware check them?       | `authenticate` verifies the JWT in the httpOnly cookie and reloads the user from the database (so role changes apply at once) → `requireRole(...roles)` on every route → services scope staff to their module's status and borrowers to their own records. The frontend guard (`proxy.ts`) only mirrors this for UX |
+| What HTTP status for unauthorized access? | **401** when not logged in, **403** for the wrong role, **404** for a loan outside the caller's module or another borrower's record (so existence isn't revealed)                                                                                                                                                   |
+
 ## Data model
 
 ```mermaid
@@ -189,7 +205,7 @@ Base path `/api/v1`. Full request and response shapes and every error code are i
 | GET, POST | `/admin/users`                                     | ADMIN                                                                      |
 | PATCH     | `/admin/users/:userId/role`                        | ADMIN                                                                      |
 
-Status codes: 400 validation · 401 not logged in · 403 wrong role · 404 · 409 conflict · 413 too large · 415 file type · 422 business rule (BRE / payment) · 429 rate limited. Every list is paginated (`?page&limit`).
+Status codes: 400 validation or malformed request · 401 not logged in · 403 wrong role · 404 · 409 conflict · 413 too large · 415 file type or encoding · 422 business rule (BRE / payment) · 429 rate limited · 503 database unavailable. Every list is paginated (`?page&limit`).
 
 ## Security
 

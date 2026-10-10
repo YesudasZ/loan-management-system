@@ -64,11 +64,11 @@ export function getServerWaking(): boolean {
 
 // --- Requests ---
 
-type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
+type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 interface RequestOptions {
   method?: HttpMethod;
-  /** JSON body. POST/PUT always send at least `{}`. */
+  /** JSON body. POST/PUT/PATCH always send at least `{}`. */
   body?: unknown;
   /** Multipart body (file uploads); the browser sets the Content-Type. */
   formData?: FormData;

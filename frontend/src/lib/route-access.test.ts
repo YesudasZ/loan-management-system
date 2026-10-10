@@ -74,6 +74,16 @@ describe('resolveRouteAccess', () => {
     expect(resolveRouteAccess('/dashboard', 'SALES')).toEqual(redirect('/dashboard/sales'));
   });
 
+  it('opens Staff management to ADMIN only', () => {
+    expect(resolveRouteAccess('/dashboard/staff', 'ADMIN')).toEqual(allow);
+    for (const role of ['SALES', 'SANCTION', 'DISBURSEMENT', 'COLLECTION', 'BORROWER'] as const) {
+      expect(resolveRouteAccess('/dashboard/staff', role)).toEqual(redirect('/forbidden'));
+    }
+    expect(resolveRouteAccess('/dashboard/staff', null)).toEqual(
+      redirect('/login?next=%2Fdashboard%2Fstaff'),
+    );
+  });
+
   it('lets ADMIN into every module and the overview', () => {
     expect(resolveRouteAccess('/dashboard', 'ADMIN')).toEqual(allow);
     for (const dashboardModule of getAllowedModules('ADMIN')) {
@@ -87,12 +97,13 @@ describe('resolveRouteAccess', () => {
 });
 
 describe('getAllowedModules', () => {
-  it('gives ADMIN all four modules and an executive only theirs', () => {
+  it('gives ADMIN every module including Staff, and an executive only theirs', () => {
     expect(getAllowedModules('ADMIN').map((dashboardModule) => dashboardModule.key)).toEqual([
       'sales',
       'sanction',
       'disbursement',
       'collection',
+      'staff',
     ]);
     expect(getAllowedModules('DISBURSEMENT').map((dashboardModule) => dashboardModule.key)).toEqual(
       ['disbursement'],

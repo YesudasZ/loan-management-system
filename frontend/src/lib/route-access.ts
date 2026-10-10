@@ -1,12 +1,12 @@
 import type { Role } from './constants';
 
-export type DashboardModuleKey = 'sales' | 'sanction' | 'disbursement' | 'collection';
+export type DashboardModuleKey = 'sales' | 'sanction' | 'disbursement' | 'collection' | 'staff';
 
 export interface DashboardModule {
   key: DashboardModuleKey;
   label: string;
   path: string;
-  /** The executive role that owns the module. ADMIN can open every module. */
+  /** The role that owns the module. ADMIN can open every module; Staff is ADMIN's own. */
   ownerRole: Role;
 }
 
@@ -25,6 +25,7 @@ export const DASHBOARD_MODULES: readonly DashboardModule[] = [
     path: '/dashboard/collection',
     ownerRole: 'COLLECTION',
   },
+  { key: 'staff', label: 'Staff', path: '/dashboard/staff', ownerRole: 'ADMIN' },
 ];
 
 export const LOGIN_PATH = '/login';

@@ -11,6 +11,17 @@ export const ROLES = [
   'BORROWER',
 ] as const;
 export type Role = (typeof ROLES)[number];
+/** Roles an admin can give a new account (borrowers only come from public sign-up). */
+export const STAFF_ROLES = ['SALES', 'SANCTION', 'DISBURSEMENT', 'COLLECTION', 'ADMIN'] as const;
+export type StaffRole = (typeof STAFF_ROLES)[number];
+export const ROLE_LABELS: Record<Role, string> = {
+  ADMIN: 'Admin',
+  SALES: 'Sales',
+  SANCTION: 'Sanction',
+  DISBURSEMENT: 'Disbursement',
+  COLLECTION: 'Collection',
+  BORROWER: 'Borrower',
+};
 
 export const AUTH_COOKIE_NAME = 'lms_token';
 export const API_PREFIX = '/api/v1';

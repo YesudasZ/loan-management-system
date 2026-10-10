@@ -49,3 +49,18 @@ export function getNextStatus(current: LoanStatus, action: LoanAction): LoanStat
 export function isActiveLoanStatus(status: LoanStatus): boolean {
   return ACTIVE_LOAN_STATUSES.includes(status);
 }
+
+/**
+ * The loan status each executive module works on. Executives only see (read) loans in this
+ * status; ADMIN sees every status. SALES works with users who have no loan, so it has none.
+ */
+export const MODULE_OWNED_STATUS: Readonly<Partial<Record<Role, LoanStatus>>> = {
+  SANCTION: 'APPLIED',
+  DISBURSEMENT: 'SANCTIONED',
+  COLLECTION: 'DISBURSED',
+};
+
+/** Whether this role may read a loan in this status (404 otherwise, as if it didn't exist). */
+export function canViewLoanInStatus(role: Role, status: LoanStatus): boolean {
+  return role === 'ADMIN' || MODULE_OWNED_STATUS[role] === status;
+}

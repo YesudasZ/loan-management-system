@@ -7,6 +7,8 @@ import {
 } from '../../models/borrower-profile.model.js';
 import { AppError } from '../../utils/app-error.js';
 import { toSalarySlipDto, type SalarySlipDto } from '../borrower/borrower.dto.js';
+import type { AuthUser } from '../auth/auth.types.js';
+import { findLoanForViewer } from '../loans/loan-operations.service.js';
 import { assertNoActiveLoan, isSalarySlipInUse } from '../loans/loans.service.js';
 import { checkSalarySlipFile, type UploadedFile } from './salary-slip-file.js';
 import {
@@ -97,4 +99,13 @@ export async function openOwnSalarySlip(userId: string): Promise<SalarySlipDownl
     throw new AppError(404, 'NOT_FOUND', 'No salary slip uploaded yet');
   }
   return openSalarySlip(profile.salarySlip);
+}
+
+/** Staff view of a loan's slip: only where the viewer may read the loan (SANCTION: APPLIED). */
+export async function openLoanSalarySlip(
+  viewer: AuthUser,
+  loanId: string,
+): Promise<SalarySlipDownload> {
+  const loan = await findLoanForViewer(viewer, loanId);
+  return openSalarySlip(loan.salarySlip);
 }

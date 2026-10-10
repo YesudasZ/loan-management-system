@@ -18,7 +18,10 @@ export type ErrorCode =
   | 'FILE_REQUIRED'
   | 'INVALID_UPLOAD'
   | 'FILE_TOO_LARGE'
-  | 'UNSUPPORTED_FILE_TYPE';
+  | 'UNSUPPORTED_FILE_TYPE'
+  | 'LOAN_NOT_DISBURSED'
+  | 'DUPLICATE_UTR'
+  | 'PAYMENT_RULES_FAILED';
 
 /**
  * An expected, client-facing error. Services throw it; the central error handler turns it

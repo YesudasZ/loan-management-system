@@ -320,3 +320,9 @@ Step-by-step instructions (Atlas, Render, Vercel, env vars, post-deploy checks) 
 - **"One active loan" is per account,** not per PAN.
 
 Details and mitigations: [docs/SECURITY.md](docs/SECURITY.md#known-limitations).
+
+## Future work
+
+- **Production improvements:** separate staff portal/domain, SSO and mandatory 2FA for staff, IP allowlisting. Today there is one login page for every role, on purpose: the evaluator can sign in with any seeded account straight away.
+- **Accounts:** a change-password and password-reset flow, so admin-created staff can replace their temporary password.
+- **Sessions:** re-issue the session cookie after a role change, so the user doesn't have to log in again to see their new dashboard.

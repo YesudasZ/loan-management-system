@@ -1,17 +1,8 @@
 import type { Metadata } from 'next';
-import { EmptyState } from '@/components/ui/EmptyState';
-import { PageHeader } from '@/components/ui/PageHeader';
+import { CollectionQueue } from '@/components/dashboard/CollectionModule';
 
 export const metadata: Metadata = { title: 'Collection' };
 
 export default function CollectionModulePage() {
-  return (
-    <>
-      <PageHeader
-        title="Collection"
-        description="Disbursed loans: outstanding balances and payments."
-      />
-      <EmptyState title="No active loans" />
-    </>
-  );
+  return <CollectionQueue />;
 }

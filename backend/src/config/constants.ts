@@ -81,3 +81,12 @@ export const ALLOWED_UPLOAD_TYPES: Readonly<Record<string, string>> = {
   jpeg: 'image/jpeg',
   png: 'image/png',
 };
+
+// Lists
+export const DEFAULT_PAGE_SIZE = 20;
+export const MAX_PAGE_SIZE = 100;
+
+// Payments
+export const UTR_PATTERN = /^[A-Z0-9]{6,30}$/; // Real UTRs are 12–22 characters; kept loose on purpose.
+export const REJECTION_REASON_MIN_LENGTH = 5;
+export const NOTE_MAX_LENGTH = 500;

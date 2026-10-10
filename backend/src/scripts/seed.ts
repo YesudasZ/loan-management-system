@@ -7,6 +7,7 @@ import { logger } from '../config/logger.js';
 import { initModels } from '../models/index.js';
 import { UserModel } from '../models/user.model.js';
 import { DEMO_BORROWERS, resetDemoBorrowerData, seedDemoBorrower } from './seed-borrowers.js';
+import { advanceDemoLoan, loadSeedStaff } from './seed-loan-outcomes.js';
 
 // Shared demo password, published in the README so the evaluator can log in as every role.
 const SEED_PASSWORD = 'Password@123';
@@ -61,8 +62,12 @@ async function seed(): Promise<void> {
   const demoEmails = DEMO_BORROWERS.map((demo) => demo.email);
   const demoUsers = await UserModel.find({ email: mongoose.trusted({ $in: demoEmails }) });
   await resetDemoBorrowerData(demoUsers.map((user) => user._id));
+  const staff = await loadSeedStaff();
   for (const demo of DEMO_BORROWERS) {
-    await seedDemoBorrower(demo);
+    const loanId = await seedDemoBorrower(demo);
+    if (loanId && demo.loan) {
+      await advanceDemoLoan(loanId, demo.loan, staff);
+    }
   }
 
   logger.info(

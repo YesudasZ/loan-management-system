@@ -33,6 +33,14 @@ export function getFieldErrors(error: ApiError): Record<string, string> {
   return Object.fromEntries(parsed.data.map((issue) => [issue.field, issue.message]));
 }
 
+const ruleFailuresSchema = z.object({ failures: z.array(z.object({ message: z.string() })) });
+
+/** Messages from a business-rule error (422 with `details.failures`), or [] otherwise. */
+export function getFailureMessages(error: ApiError): string[] {
+  const parsed = ruleFailuresSchema.safeParse(error.details);
+  return parsed.success ? parsed.data.failures.map((failure) => failure.message) : [];
+}
+
 // --- "Waking up the server" banner state (Render's free tier sleeps when idle) ---
 
 type WakingListener = (isWaking: boolean) => void;

@@ -1,9 +1,15 @@
 import { Router } from 'express';
+import type { Role } from '../../config/constants.js';
 import { authenticate } from '../../middleware/authenticate.js';
 import { requireRole } from '../../middleware/require-role.js';
-import { validate } from '../../middleware/validate.js';
+import { emptyBodySchema, validate } from '../../middleware/validate.js';
+import { LOAN_ACTIONS } from '../../utils/loan-state-machine.js';
+import { loanIdParamsSchema } from '../../utils/schemas.js';
 import * as loansController from './loans.controller.js';
-import { applyBodySchema } from './loans.schema.js';
+import { applyBodySchema, approveBodySchema, rejectBodySchema } from './loans.schema.js';
+
+// Staff who work on loans. Reads are further scoped to each module's status in the service.
+const LOAN_READ_ROLES: Role[] = ['SANCTION', 'DISBURSEMENT', 'COLLECTION', 'ADMIN'];
 
 export const loansRouter = Router();
 
@@ -14,4 +20,40 @@ loansRouter.post(
   requireRole('BORROWER'),
   validate({ body: applyBodySchema }),
   loansController.apply,
+);
+
+// Operations dashboard. Action roles come from the state machine, the single source of truth.
+loansRouter.get(
+  '/loans',
+  authenticate,
+  requireRole(...LOAN_READ_ROLES),
+  loansController.listLoans, // parses its own query string (see the controller)
+);
+loansRouter.get(
+  '/loans/:loanId',
+  authenticate,
+  requireRole(...LOAN_READ_ROLES),
+  validate({ params: loanIdParamsSchema }),
+  loansController.getLoan,
+);
+loansRouter.post(
+  '/loans/:loanId/approve',
+  authenticate,
+  requireRole(...LOAN_ACTIONS.APPROVE.allowedRoles),
+  validate({ params: loanIdParamsSchema, body: approveBodySchema }),
+  loansController.approve,
+);
+loansRouter.post(
+  '/loans/:loanId/reject',
+  authenticate,
+  requireRole(...LOAN_ACTIONS.REJECT.allowedRoles),
+  validate({ params: loanIdParamsSchema, body: rejectBodySchema }),
+  loansController.reject,
+);
+loansRouter.post(
+  '/loans/:loanId/disburse',
+  authenticate,
+  requireRole(...LOAN_ACTIONS.DISBURSE.allowedRoles),
+  validate({ params: loanIdParamsSchema, body: emptyBodySchema }),
+  loansController.disburse,
 );

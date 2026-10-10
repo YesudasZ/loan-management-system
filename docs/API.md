@@ -15,19 +15,19 @@ The canonical API reference. Each feature branch adds the rows for the endpoints
 
 ## Error codes
 
-| HTTP | Codes                                                                                                   |
-| ---- | ------------------------------------------------------------------------------------------------------- |
-| 400  | `VALIDATION_ERROR` (details: `[{ field, message }]`), `INVALID_JSON`, `FILE_REQUIRED`, `INVALID_UPLOAD` |
-| 401  | `UNAUTHENTICATED`, `INVALID_CREDENTIALS`                                                                |
-| 403  | `FORBIDDEN`, `INVALID_ORIGIN`                                                                           |
-| 404  | `NOT_FOUND`                                                                                             |
-| 409  | `EMAIL_ALREADY_REGISTERED`, `ACTIVE_LOAN_EXISTS`, `PROFILE_INCOMPLETE`                                  |
-| 413  | `PAYLOAD_TOO_LARGE` (JSON body over 100 kb), `FILE_TOO_LARGE` (upload over 5 MB)                        |
-| 415  | `UNSUPPORTED_FILE_TYPE` (extension, declared type and magic bytes must all be PDF/JPG/PNG)              |
-| 422  | `BRE_FAILED` (details: `{ failures: [{ rule, message }] }`, every failed rule)                          |
-| 429  | `RATE_LIMITED`                                                                                          |
-| 500  | `INTERNAL_ERROR` (generic message, no internals)                                                        |
-| 503  | `DATABASE_UNAVAILABLE` (`/health` only)                                                                 |
+| HTTP | Codes                                                                                                                                      |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| 400  | `VALIDATION_ERROR` (details: `[{ field, message }]`), `INVALID_JSON`, `FILE_REQUIRED`, `INVALID_UPLOAD`                                    |
+| 401  | `UNAUTHENTICATED`, `INVALID_CREDENTIALS`                                                                                                   |
+| 403  | `FORBIDDEN`, `INVALID_ORIGIN`                                                                                                              |
+| 404  | `NOT_FOUND`                                                                                                                                |
+| 409  | `EMAIL_ALREADY_REGISTERED`, `ACTIVE_LOAN_EXISTS`, `PROFILE_INCOMPLETE`, `INVALID_STATUS_TRANSITION`, `LOAN_NOT_DISBURSED`, `DUPLICATE_UTR` |
+| 413  | `PAYLOAD_TOO_LARGE` (JSON body over 100 kb), `FILE_TOO_LARGE` (upload over 5 MB)                                                           |
+| 415  | `UNSUPPORTED_FILE_TYPE` (extension, declared type and magic bytes must all be PDF/JPG/PNG)                                                 |
+| 422  | `BRE_FAILED`, `PAYMENT_RULES_FAILED` (details: `{ failures: [{ rule, message }] }`, every failed rule)                                     |
+| 429  | `RATE_LIMITED`                                                                                                                             |
+| 500  | `INTERNAL_ERROR` (generic message, no internals)                                                                                           |
+| 503  | `DATABASE_UNAVAILABLE` (`/health` only)                                                                                                    |
 
 ## Endpoints
 
@@ -45,6 +45,21 @@ The canonical API reference. Each feature branch adds the rows for the endpoints
 | POST   | `/api/v1/borrower/salary-slip` | BORROWER                                          | `multipart/form-data` with one field `file`: PDF/JPG/PNG, ≤ 5 MB                                                                     | 201 `{ salarySlip: { contentType, sizeBytes, uploadedAt } }` (replaces any previous slip)                                                                                                          | 400 `FILE_REQUIRED` / `INVALID_UPLOAD`, 401, 403, 409 `PROFILE_INCOMPLETE` / `ACTIVE_LOAN_EXISTS`, 413 `FILE_TOO_LARGE`, 415 `UNSUPPORTED_FILE_TYPE` |
 | GET    | `/api/v1/borrower/salary-slip` | BORROWER (own slip only)                          | —                                                                                                                                    | 200 file stream (`Content-Disposition: inline`, `nosniff`, `private, no-store`, own CSP)                                                                                                           | 401, 403, 404                                                                                                                                        |
 | POST   | `/api/v1/borrower/loans`       | BORROWER                                          | `{ principal (paise, ₹50,000–₹5,00,000, whole rupees), tenureDays (30–365) }`. Totals are not accepted (400).                        | 201 `{ loan: BorrowerLoan }` with server-calculated `simpleInterest` and `totalRepayment`, status `APPLIED`                                                                                        | 400, 401, 403, 409 `PROFILE_INCOMPLETE` / `ACTIVE_LOAN_EXISTS`, 422 `BRE_FAILED` (re-checked at apply time)                                          |
+
+| GET | `/api/v1/loans` | SANCTION, DISBURSEMENT, COLLECTION, ADMIN | `?status&page&limit`. Executives always get their module's status (APPLIED / SANCTIONED / DISBURSED); asking for another → 403. ADMIN: any status or all. | 200 paginated `LoanSummary` (newest first) | 400, 401, 403 |
+| GET | `/api/v1/loans/:loanId` | SANCTION, DISBURSEMENT, COLLECTION, ADMIN | — | 200 `{ loan: LoanDetail }` | 400 (invalid id), 401, 403, 404 (unknown, or outside the viewer's module status) |
+| POST | `/api/v1/loans/:loanId/approve` | SANCTION, ADMIN | `{ note? }` (body optional) | 200 `{ loan }`, status `SANCTIONED` | 400, 401, 403, 404, 409 `INVALID_STATUS_TRANSITION` |
+| POST | `/api/v1/loans/:loanId/reject` | SANCTION, ADMIN | `{ reason }` (5–500 chars, shown to the borrower) | 200 `{ loan }`, status `REJECTED` | 400, 401, 403, 404, 409 |
+| POST | `/api/v1/loans/:loanId/disburse` | DISBURSEMENT, ADMIN | — (body optional) | 200 `{ loan }`, status `DISBURSED`, `disbursedAt` set | 400, 401, 403, 404, 409 |
+| GET | `/api/v1/loans/:loanId/salary-slip` | SANCTION (APPLIED loans only), ADMIN | — | 200 file stream (same headers as the borrower download) | 400, 401, 403, 404 |
+| GET | `/api/v1/loans/:loanId/payments` | COLLECTION (DISBURSED loans only), ADMIN | `?page&limit` | 200 paginated `Payment` (newest first) | 400, 401, 403, 404 |
+| POST | `/api/v1/loans/:loanId/payments` | COLLECTION, ADMIN | `{ utr (6–30 letters/digits, trimmed + uppercased), amount (paise, > 0), paymentDate: 'YYYY-MM-DD' }` | 201 `{ payment, loan: LoanDetail }`. The insert, `totalPaid` increment and auto-close run in one transaction; `loan.status` is `CLOSED` when the balance reaches 0. | 400, 401, 403, 404, 409 `LOAN_NOT_DISBURSED` / `DUPLICATE_UTR`, 422 `PAYMENT_RULES_FAILED` (amount > outstanding, date in the future or before disbursal) |
+
+Staff actions return 404 only when the loan id doesn't exist; a loan in the wrong status is 409. Reads are scoped: an executive gets 404 for loans outside their module's status.
+
+`LoanSummary` = `{ id, borrower: { name, email }, applicant: { fullName, panMasked }, principal, tenureDays, totalRepayment, totalPaid, outstanding, status, createdAt, disbursedAt }`. `LoanDetail` adds `applicant.{ dateOfBirth, monthlySalary, employmentMode, breResult }`, `salarySlip`, `annualInterestRate`, `simpleInterest`, `rejectionReason`, `closedAt` and `statusHistory: [{ from, to, at, note, by: { name, role } }]`. Staff never see a full PAN.
+
+`Payment` = `{ id, utr, amount, paymentDate, recordedBy: { name }, createdAt }`.
 
 `BorrowerProfile` = `{ fullName, pan, dateOfBirth, monthlySalary, employmentMode, breResult: { isEligible, failures, checkedAt }, salarySlip: { contentType, sizeBytes, uploadedAt } | null, updatedAt }`.
 

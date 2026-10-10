@@ -3,6 +3,7 @@ import type { Request, Response } from 'express';
 import { getAuthUser } from '../../middleware/authenticate.js';
 import { AppError } from '../../utils/app-error.js';
 import { sendSuccess } from '../../utils/respond.js';
+import type { LoanIdParams } from '../../utils/schemas.js';
 import * as uploadsService from './uploads.service.js';
 
 const EXTENSION_BY_TYPE: Record<string, string> = {
@@ -42,4 +43,9 @@ export async function uploadSalarySlip(req: Request, res: Response) {
 
 export async function downloadOwnSalarySlip(req: Request, res: Response) {
   await sendSalarySlip(res, await uploadsService.openOwnSalarySlip(getAuthUser(req).id));
+}
+
+export async function downloadLoanSalarySlip(req: Request<LoanIdParams>, res: Response) {
+  const download = await uploadsService.openLoanSalarySlip(getAuthUser(req), req.params.loanId);
+  await sendSalarySlip(res, download);
 }

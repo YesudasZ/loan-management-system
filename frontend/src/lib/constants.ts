@@ -55,3 +55,8 @@ export const DEFAULT_TENURE_DAYS = 90;
 // Salary slip
 export const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 export const ALLOWED_UPLOAD_EXTENSIONS = ['pdf', 'jpg', 'jpeg', 'png'];
+
+// Operations
+export const REJECTION_REASON_MIN_LENGTH = 5;
+export const NOTE_MAX_LENGTH = 500;
+export const UTR_PATTERN = /^[A-Z0-9]{6,30}$/;

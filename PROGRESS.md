@@ -2,16 +2,16 @@
 
 One entry per merged branch, newest last. Each entry says what changed and how to test it by hand.
 
-| #   | Branch                         | Status                  |
-| --- | ------------------------------ | ----------------------- |
-| 1   | `chore/repo-setup`             | merged                  |
-| 2   | `feat/backend-foundation-auth` | merged                  |
-| 3   | `feat/frontend-foundation`     | merged                  |
-| 4   | `feat/borrower-journey`        | in review               |
-| 5   | `feat/operations-modules`      | planned (E2E milestone) |
-| 6   | `feat/sales-admin-overview`    | planned                 |
-| 7   | `test/rbac-security-hardening` | planned                 |
-| 8   | `docs/readme-polish-release`   | planned (tag `v1.0.0`)  |
+| #   | Branch                         | Status                 |
+| --- | ------------------------------ | ---------------------- |
+| 1   | `chore/repo-setup`             | merged                 |
+| 2   | `feat/backend-foundation-auth` | merged                 |
+| 3   | `feat/frontend-foundation`     | merged                 |
+| 4   | `feat/borrower-journey`        | merged                 |
+| 5   | `feat/operations-modules`      | in review (E2E)        |
+| 6   | `feat/sales-admin-overview`    | planned                |
+| 7   | `test/rbac-security-hardening` | planned                |
+| 8   | `docs/readme-polish-release`   | planned (tag `v1.0.0`) |
 
 ---
 
@@ -150,3 +150,50 @@ Locally, after `npm run seed --prefix backend` with both apps running:
    ```
 
    Expected: the 4.9 MB upload → `{"success":true,...}`; the 5.1 MB upload → our JSON `FILE_TOO_LARGE`. If either returns a Vercel error page instead, send it to me (fallback plan in PLAN.md).
+
+## 5. `feat/operations-modules` (end-to-end milestone)
+
+**What changed**
+
+- **Sanction:**
+  - APPLIED queue → review page: applicant (masked PAN), BRE result, loan terms, inline salary slip viewer (PDF `<iframe>` / image), history.
+  - **Approve**, or **Reject** with a required reason (shown to the borrower).
+- **Disbursement:** SANCTIONED queue with **Mark disbursed** behind a confirm dialog; stores `disbursedAt` and `disbursedBy`.
+- **Collection:**
+  - DISBURSED queue with outstanding balances → loan page with a payment form (UTR, amount in ₹, date, "Fill outstanding amount") and payment history.
+  - Each payment runs in a **MongoDB transaction**; the loan **auto-closes** when the balance reaches zero.
+- **API:** `GET /loans` (role-scoped, paginated), `GET /loans/:id`, `POST /loans/:id/approve|reject|disburse`, `GET /loans/:id/salary-slip`, `GET|POST /loans/:id/payments`. Action roles come from the state machine.
+- **Seed:** loans in every status (2 APPLIED, 1 SANCTIONED, 1 REJECTED, 2 DISBURSED incl. one partial payment, 1 CLOSED), created through the real services as the seeded staff.
+- **Tests:** backend **180**, including:
+  - queue scoping, 404 outside the module, 409 on a double approve, a concurrent-approval race
+  - reject needs a reason; disburse needs no body
+  - slip visibility per role
+  - payments: partial, auto-close, duplicate UTR (any case) with no partial write, overpay / future / before-disbursal → 422, not disbursed → 409
+  - **two simultaneous payments can't overpay**
+  - RBAC for every new endpoint
+- **End-to-end in the browser (local, seeded replica set):**
+  1. `sanction@` reviewed Arjun (PDF slip rendered in Chrome) and approved → toast and back to the queue.
+  2. `sanction@` opening `/dashboard/collection` saw the 403 page.
+  3. `disbursement@` marked it disbursed.
+  4. `collection@` recorded ₹50,000 → outstanding ₹52,958.90.
+  5. The same UTR in lowercase → "already been recorded".
+  6. "Fill outstanding amount" → the loan auto-closed → toast and back to the queue.
+  7. `demo.applied1@` saw **CLOSED** with the full timeline.
+
+**Manual test steps** (local or deployed, after re-seeding)
+
+1. `sanction@lms.dev` → Sanction → **Review** Arjun Applied: check the applicant, BRE, slip viewer → **Approve**.
+2. `disbursement@lms.dev` → **Mark disbursed** → confirm.
+3. `collection@lms.dev` → **Record payment** for Arjun:
+   - ₹50,000 with UTR `UTR0001` → outstanding drops.
+   - `utr0001` again → duplicate error.
+   - New UTR + **Fill outstanding amount** → "Loan fully repaid and closed".
+4. Log in as `demo.applied1@lms.dev` → status page shows CLOSED with the timeline.
+5. Try Reject on Anita Applied: an empty reason is refused, and a real reason shows on `demo.applied2@`'s status page.
+6. As `sanction@`, open `/dashboard/collection` → 403 page. As `admin@`, all modules are in the sidebar.
+
+**After the merge:**
+
+- Re-run the production seed (it now also creates the SANCTIONED, DISBURSED, REJECTED and CLOSED demo loans).
+- Run the deployed E2E (the steps above on the Vercel URL).
+- Run the 4.9 MB upload check from §4 if not done yet.

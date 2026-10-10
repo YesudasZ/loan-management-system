@@ -117,6 +117,7 @@ Format and severity scale: `audit/README.md`.
 - **Impact:** small, but these are the documents an evaluator uses to understand the design; two of them describe a pipeline order and a validate() feature the code doesn't have.
 - **Breaks:** CLAUDE.md §8 (docs updated when behaviour changes), §9 (decisions recorded accurately).
 - **Suggested fix:** add `admin` and `StaffModule` to ARCHITECTURE; correct the pipeline order there (or move `verifyOrigin` first in `app.ts` as B-03 suggests, then the doc becomes right); rewrite DECISIONS #31 to "query strings are parsed in the controllers (see #61)" or delete it; DEPLOYMENT: "creates the 17 demo accounts" and "Overview plus all five modules"; UI.md: "My loans: cards below 640px; queues and Staff: cards below 1024px; Sales: a scrolling table"; SECURITY: "a fixed, arbitrary id" and drop "branch 7" from the heading; PROGRESS: mark branch 11 merged and add the audit branch.
+- **Verification (P1):** Confirmed (2 claims checked) — claim 3: `docs/DECISIONS.md:46` (#31) says "`validate()` shadows [`req.query`] with an own property", but `backend/src/middleware/validate.ts:4-7` has only `body?` and `params?`, and its JSDoc (`:19-20`) says query strings are parsed in the controllers, as #61 (`DECISIONS.md:85`) says; #31 is stale. Claim 4: `docs/DEPLOYMENT.md:40` says `npm run seed` "creates the 6 role accounts"; running the real `seedDemoData()` in-process (`audit/scripts/v-g03.ts`) returns `{"accounts":17,"demoBorrowers":12}` with 17 users. Docs-only: Low is right.
 - **Status:** open
 
 ## Passed checks

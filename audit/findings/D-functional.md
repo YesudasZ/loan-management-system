@@ -12,6 +12,7 @@ Format and severity scale: `audit/README.md`.
 - **Impact:** An executive who has a loan id can learn that it exists and what stage it's in, although the read endpoints hide it ("404, exactly as if it didn't exist, so executives can't browse other stages"). Ids are 24-hex ObjectIds that staff only see for their own module, so the practical exposure is small.
 - **Breaks:** CLAUDE.md section 6 "Never leak whether a resource exists to unauthorized users" (partially; the actor has a staff role, so this is defence in depth).
 - **Suggested fix:** In `transitionLoan` and `recordPayment`, when the conditional update matches nothing, return 404 if `!canViewLoanInStatus(actor.role, existing.status)` and keep the 409 only for loans the actor may view (for ADMIN, or a race inside the module). Or drop the status from the 409 message for non-admin actors.
+- **Duplicate of:** B-04 (same root cause `loan-operations.service.ts:140-145`; D-01 adds the payments variant, `payments.service.ts:64-70` → 409 `LOAN_NOT_DISBURSED`). The two lenses rate it differently (B-04 Info, D-01 Low). It is a recorded, accepted trade-off (`docs/DECISIONS.md:79` #55, `PLAN.md:288`, `docs/API.md:66`) visible only to staff who already pass the role check, so track it once, at Info (or Low if the generic-message fix is taken).
 - **Status:** open
 
 ### D-02 · Low · A borrower who has since become eligible by age is sent to the salary-slip step, then refused
@@ -22,6 +23,7 @@ Format and severity scale: `audit/README.md`.
 - **Impact:** A borrower who failed only the age rule shortly before their 23rd birthday comes back, is taken to "Upload your salary slip" and gets an error until they open Personal details and save again. Rare and recoverable (the message points to the details page); no wrong data is stored, and apply re-checks the BRE anyway.
 - **Breaks:** none (inconsistent wizard state; the PDF only requires the BRE to block ineligible applicants, which it does).
 - **Suggested fix:** In `uploadSalarySlip`, evaluate the BRE freshly (`evaluateEligibility(toBreInput(profile), toBusinessDate())`) instead of reading `profile.breResult`, and save the fresh result to the profile when it differs, so the wizard, Sales and the upload agree.
+- **Verification (P1):** Confirmed — re-ran `audit/scripts/d5-stale-bre.ts` in-process with the shifted clock: day 1 profile save → 422 [AGE]; day 2, nothing changed: progress `currentStep=SALARY_SLIP isEligible=true` while the stored `breResult.isEligible=false`, and the slip upload → 409 `PROFILE_INCOMPLETE`; after re-saving the same details, PUT 200 and upload 201. (The script's one "FAIL" line is its check for the correct behaviour, so it failing means the bug reproduces.) Code re-read: `borrower.service.ts:37-39` evaluates the BRE fresh, `uploads.service.ts:41-48` reads the stored `profile.breResult.isEligible`. Rare and recoverable: Low is right.
 - **Status:** open
 
 ### D-03 · Low · Re-seeding deletes any payment whose UTR starts with "SEED", including real payments on non-demo loans
@@ -32,6 +34,7 @@ Format and severity scale: `audit/README.md`.
 - **Impact:** After a re-seed (DEPLOYMENT.md tells the operator to re-seed production before submission and again after the E2E run), a real payment record whose UTR happens to start with SEED disappears: `totalPaid` no longer equals the sum of the payments, the payment history loses an entry, and its UTR becomes reusable. Needs both an operator re-seed and a UTR with that prefix on a non-demo loan, so it's unlikely, but it contradicts the README ("safe to re-run … never touches other users", `README.md:236`) and DEPLOYMENT.md:187.
 - **Breaks:** the documented re-seed guarantee (`README.md:236`, `docs/DEPLOYMENT.md:187`) and the data invariant `totalPaid == sum(payments)` that the payment service otherwise keeps.
 - **Suggested fix:** Drop the `utr` regex branch and delete only payments on the demo loans, plus orphaned seed payments whose `loanId` no longer exists in `loans` (for example `utr ^SEED` **and** `loanId` not in the existing loan ids). Or generate seed UTRs that can't collide with real ones and match on `recordedBy` + demo loan ids.
+- **Verification (P1):** Confirmed — in-process (`audit/scripts/v-d03-d04.ts`): after `seedDemoData()`, COLLECTION records `{"utr":"seed12345678","amount":1000000}` on a non-demo DISBURSED loan → 201 (stored as `SEED12345678`); a second `seedDemoData()` leaves 0 payments on that loan while `totalPaid` stays 1000000. Re-read `seed-borrowers.ts:135-139`: the `$or` includes `{ utr: { $regex: "^SEED" } }` with no loan restriction. Needs an operator re-seed plus a colliding UTR: Low is right.
 - **Status:** open
 
 ### D-04 · Low · seedTestData isn't atomic: a real payment with a TEST-pattern UTR makes it fail halfway and leave inconsistent test loans
@@ -42,6 +45,7 @@ Format and severity scale: `audit/README.md`.
 - **Impact:** QA tooling only. If anyone has used a UTR of the form `TEST` + 8 digits (a plausible test value on a shared database), `--test-data` crashes and leaves test loans whose totals and payments disagree until `--remove-test-data` is run. Demo and real data are not changed.
 - **Breaks:** none (docs/TEST_ACCOUNTS.md: "totals, history, payments and balances always agree" doesn't hold after the partial run).
 - **Suggested fix:** Run the three `insertMany` calls in one transaction (`session.withTransaction`), and check up front for existing `^TEST\d{8}$` payments outside the test loans (fail with a clear message), or give the test UTRs a per-run random component.
+- **Verification (P1):** Confirmed — in-process (`audit/scripts/v-d03-d04.ts`): COLLECTION records UTR `TEST00000001` on a non-test loan → 201; `seedTestData()` then throws `E11000 duplicate key error … utr_1 dup key: { utr: "TEST00000001" }`, leaving 60 test users, 125 test loans, 0 test payments and 79 test loans with `totalPaid > 0`. Re-read `test-data-seed.ts:182-184`: three separate `insertMany` calls, no transaction. QA tooling only: Low is right.
 - **Status:** open
 
 ## Passed checks

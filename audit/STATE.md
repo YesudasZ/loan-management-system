@@ -4,16 +4,16 @@ Branch `chore/pre-submission-audit`. Method and rules: `audit/README.md`. Findin
 
 On resume: skip ticked items and lenses marked done, and continue from the first unticked item.
 
-| Lens                                      | Status                              | Findings file                      |
-| ----------------------------------------- | ----------------------------------- | ---------------------------------- |
-| A: Requirements compliance                | pending                             | `audit/findings/A-requirements.md` |
-| B: API and RBAC                           | in progress                         | `audit/findings/B-api-rbac.md`     |
-| C: Security                               | pending                             | `audit/findings/C-security.md`     |
-| D: Functional correctness                 | pending                             | `audit/findings/D-functional.md`   |
-| E: Frontend responsive / a11y / stability | pending                             | `audit/findings/E-frontend.md`     |
-| F: Code quality, repo, docs               | pending                             | `audit/findings/F-quality-docs.md` |
-| G: Live smoke check (read-only)           | done (G4 results from user pending) | `audit/findings/G-live.md`         |
-| Phase 2: verification and report          | pending                             | `audit/AUDIT_REPORT.md`            |
+| Lens                                      | Status      | Findings file                      |
+| ----------------------------------------- | ----------- | ---------------------------------- |
+| A: Requirements compliance                | pending     | `audit/findings/A-requirements.md` |
+| B: API and RBAC                           | in progress | `audit/findings/B-api-rbac.md`     |
+| C: Security                               | pending     | `audit/findings/C-security.md`     |
+| D: Functional correctness                 | pending     | `audit/findings/D-functional.md`   |
+| E: Frontend responsive / a11y / stability | pending     | `audit/findings/E-frontend.md`     |
+| F: Code quality, repo, docs               | pending     | `audit/findings/F-quality-docs.md` |
+| G: Live smoke check (read-only)           | done        | `audit/findings/G-live.md`         |
+| Phase 2: verification and report          | pending     | `audit/AUDIT_REPORT.md`            |
 
 ## Lens A: Requirements compliance
 
@@ -38,7 +38,7 @@ The first item expands the PDF into one checkbox per sentence, inserted below it
 ## Lens B: API and RBAC (derived from code)
 
 - [x] B1. Enumerate every registered Express route from source (method, path, middleware chain)
-- [ ] B2. Compare with docs/API.md and the README (undocumented / missing / mismatched)
+- [x] B2. Compare with docs/API.md and the README (undocumented / missing / mismatched)
 - [ ] B3. Confirm the middleware order: verifyOrigin → authenticate → requireRole → upload → validate
 - [ ] B4. Route × identity matrix (anonymous, 6 roles, a second borrower): expected 401/403/404/2xx, run in-process
 - [ ] B5. IDOR: borrower B vs A's profile, slip, loans, loan detail, payments, slip-by-loan
@@ -50,9 +50,9 @@ The first item expands the PDF into one checkbox per sentence, inserted below it
 
 ## Lens C: Security
 
-- [ ] C1. Auth: bcrypt cost, JWT alg pinned + expiry, cookie flags, logout clears the cookie
-- [ ] C2. A changed-role or deleted user is rejected immediately; generic login errors + equal timing
-- [ ] C3. Rate limiting and trust proxy (local only)
+- [x] C1. Auth: bcrypt cost, JWT alg pinned + expiry, cookie flags, logout clears the cookie
+- [x] C2. A changed-role or deleted user is rejected immediately; generic login errors + equal timing
+- [x] C3. Rate limiting and trust proxy (local only)
 - [ ] C4. CSRF: the Origin check on every state-changing route (incl. uploads, staff management)
 - [ ] C5. NoSQL injection payloads in body, query and params; sanitizeFilter + strictQuery; ObjectId validation
 - [ ] C6. Regex/ReDoS in search inputs (staff search)
@@ -66,8 +66,8 @@ The first item expands the PDF into one checkbox per sentence, inserted below it
 
 ## Lens D: Functional correctness (local)
 
-- [ ] D1. BRE boundaries (exactly 23 today, the day before 23, 50y+364d, 51, Feb-29 DOB, future DOB, ₹24,999.99 vs ₹25,000, PAN lowercase/spaces, all 4 failing, IST midnight edge)
-- [ ] D2. Loan math: min/max principal and tenure, rounding, the worked example, client == server for 20 random combinations
+- [x] D1. BRE boundaries (exactly 23 today, the day before 23, 50y+364d, 51, Feb-29 DOB, future DOB, ₹24,999.99 vs ₹25,000, PAN lowercase/spaces, all 4 failing, IST midnight edge)
+- [x] D2. Loan math: min/max principal and tenure, rounding, the worked example, client == server for 20 random combinations
 - [ ] D3. State machine: every action × every status
 - [ ] D4. Payments and auto-close: exact payoff closes; partials; outstanding never negative; rollback on duplicate UTR
 - [ ] D5. Wizard resume after logout at each step; "Apply again" after REJECTED / CLOSED

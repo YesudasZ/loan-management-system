@@ -36,6 +36,8 @@ Every seeded account uses the password **`Password@123`**.
 
 This is a demo with shared, published credentials: please don't enter real personal data or documents.
 
+**More test data:** `npm run seed -- --test-data` adds 60 removable `@test.lms.dev` accounts (password `Test@1234`), so every role sees at least 5 records after login. Borrowers each have 5 loans, and there are 10 Sales leads. Accounts, per-borrower loans, an RBAC checklist and a suggested walkthrough are in **[docs/TEST_ACCOUNTS.md](docs/TEST_ACCOUNTS.md)**.
+
 ## Features
 
 **Borrower portal** (`/apply`): a wizard that resumes at the borrower's last completed step.
@@ -45,6 +47,7 @@ This is a demo with shared, published credentials: please don't enter real perso
 3. **Salary slip upload.** PDF, JPG or PNG up to 5 MB. The file's real type is checked from its bytes, and it's stored in MongoDB GridFS.
 4. **Loan configuration.** Sliders for ₹50,000–₹5,00,000 and 30–365 days, with a live calculation panel (12% p.a. simple interest). They work with the keyboard and screen readers.
 5. **Apply → status page** with amounts, the outstanding balance, a timeline and the rejection reason. "Apply again" appears after a rejected or closed loan.
+6. **My loans** (`/apply/loans`): every loan the borrower has applied for, newest first, each opening its own timeline.
 
 **Operations dashboard** (`/dashboard`). Each role sees only its module; Admin sees everything.
 
@@ -158,6 +161,7 @@ Base path `/api/v1`. Full request and response shapes and every error code are i
 | PUT       | `/borrower/profile`                                | BORROWER                                                                   |
 | POST, GET | `/borrower/salary-slip`                            | BORROWER                                                                   |
 | POST      | `/borrower/loans`                                  | BORROWER                                                                   |
+| GET       | `/borrower/loans` · `/borrower/loans/:loanId`      | BORROWER (own loans only)                                                  |
 | GET       | `/loans` · `/loans/:loanId`                        | SANCTION, DISBURSEMENT, COLLECTION, ADMIN (scoped to each module's status) |
 | POST      | `/loans/:loanId/approve` · `/loans/:loanId/reject` | SANCTION, ADMIN                                                            |
 | POST      | `/loans/:loanId/disburse`                          | DISBURSEMENT, ADMIN                                                        |
@@ -170,7 +174,7 @@ Status codes: 400 validation · 401 not logged in · 403 wrong role · 404 · 40
 
 ## Security
 
-RBAC on every route, with a test matrix covering **16 protected endpoints × 7 identities**. Also: IDOR-safe borrower routes, strict zod schemas, NoSQL-injection guards, magic-byte upload checks, an httpOnly cookie session, rate limits, an Origin check, helmet, and redacted logs. The full review against the project rules, the test evidence and the known limitations are in **[docs/SECURITY.md](docs/SECURITY.md)**.
+RBAC on every route, with a test matrix covering **18 protected endpoints × 7 identities**. Also: IDOR-safe borrower routes, strict zod schemas, NoSQL-injection guards, magic-byte upload checks, an httpOnly cookie session, rate limits, an Origin check, helmet, and redacted logs. The full review against the project rules, the test evidence and the known limitations are in **[docs/SECURITY.md](docs/SECURITY.md)**.
 
 ## Project structure
 
@@ -183,7 +187,7 @@ backend/
                   (*.routes.ts → *.controller.ts → *.service.ts, *.schema.ts, *.dto.ts)
     models/       user, borrower-profile, loan, payment
     utils/        bre, loan-math, loan-state-machine, payment-rules, dates, pan, jwt, …
-    scripts/      seed (+ demo borrowers and loan outcomes)
+    scripts/      seed CLI, demo data, test-data/ (the removable @test.lms.dev QA data)
     app.ts        createApp(): Express app without listen (testable)
     server.ts     connect → build indexes → listen
   tests/          unit/, integration/, fixtures/ (shared BRE + loan-math vectors), helpers/
@@ -232,6 +236,12 @@ docs/             API, ARCHITECTURE, DECISIONS, DEPLOYMENT, SECURITY
    npm run seed --prefix backend
    ```
 
+   Optionally add the QA data from [docs/TEST_ACCOUNTS.md](docs/TEST_ACCOUNTS.md) (`--remove-test-data` takes it out again):
+
+   ```bash
+   npm run seed --prefix backend -- --test-data
+   ```
+
 5. Run the API on http://localhost:4000 and the web app on http://localhost:3000, in two terminals:
 
    ```bash
@@ -266,10 +276,10 @@ npm run build
 npm run secrets
 ```
 
-- **Backend: 326 tests.**
+- **Backend: 424 tests.**
   - Unit: BRE, loan math, state machine, payment rules, dates, JWT, env, log redaction, cookie flags.
-  - Integration (supertest + in-memory replica set): auth, profile/BRE, uploads, apply, sanction/disbursement/collection, the payment transaction incl. concurrency, leads/summary, the **112-cell RBAC matrix**, and an IDOR / injection / mass-assignment suite.
-- **Frontend: 76 tests:** BRE and loan-math mirrors (shared vectors), route access and safe redirects, wizard redirects, formatting.
+  - Integration (supertest + in-memory replica set): auth, profile/BRE, uploads, apply, sanction/disbursement/collection, the payment transaction incl. concurrency, leads/summary, borrower loan history, the **126-cell RBAC matrix**, an IDOR / injection / mass-assignment suite, and the test-data seed (consistency, idempotency, safe removal, and a login as each of the 60 test accounts).
+- **Frontend: 77 tests:** BRE and loan-math mirrors (shared vectors), route access and safe redirects, wizard redirects, formatting.
 - **CI** (GitHub Actions) on every PR: lint, typecheck, test, build and `npm audit` for each app, a full-history gitleaks scan, and a Conventional-Commit PR title check. `main` is protected and requires these checks.
 
 ## Deployment
@@ -285,6 +295,8 @@ Production is seeded from a laptop, because Render's free tier has no shell:
 ```bash
 cd backend && MONGODB_URI='<prod connection string>' NODE_ENV=production npm run seed -- --force
 ```
+
+The optional test data uses the same command with `--test-data` (or `--remove-test-data`) added; see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md#test-data-in-production).
 
 Step-by-step instructions (Atlas, Render, Vercel, env vars, post-deploy checks) are in **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**.
 

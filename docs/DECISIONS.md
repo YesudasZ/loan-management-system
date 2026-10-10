@@ -91,3 +91,11 @@ Short entries: the decision and the reason. Newest decisions are added at the bo
 64. **A Sales lead is a borrower with no loan of any status.** A rejected applicant has applied, so they're no longer a lead. The lead's stage (details pending → not eligible → slip pending → ready to apply) re-runs the BRE with today's date, like the wizard does.
 65. **The leads list is one aggregation on `users`**, sorted before the loan lookup so it can use the `{ role, createdAt, _id }` index, with `$facet` for the page and the total. Collection names come from the models, never string literals.
 66. **The admin summary is zero-filled** (every status appears, even with 0), and the admin overview reuses the module queue component with an optional status filter and a status column.
+
+## Test data and loan history (branch 9)
+
+67. **Test data lives on its own domain, `@test.lms.dev`.** `--remove-test-data` can then delete exactly that data (users, profiles, slips, loans, payments) and nothing else. The domain is reserved: anything on it is reset or removed by the seed.
+68. **Test loans are built as documents, not through the live services.** The services stamp every event with "now", but the test data needs a history spread over 90 days. Each step still runs through the real rules: the apply schema, the BRE on the apply date, `calculateLoanQuote`, `getNextStatus` / `LOAN_ACTIONS` roles and `validatePayment`. Anything inconsistent throws instead of being saved, and the inserts keep the backdated timestamps (`timestamps: false`).
+69. **`--test-data` only adds test data.** It doesn't re-run the demo seed, so the `@lms.dev` accounts are never touched. Test accounts are upserted, so their ids (and open sessions) survive a re-seed, and their old data is replaced.
+70. **`GET /borrower/loans/:loanId` is the one borrower route with an id.** It filters by `{ _id, borrowerId: req.user.id }`, so another borrower's loan is a 404, exactly like a missing one.
+71. **Paid and outstanding are shown only once a loan is disbursed.** On an applied, sanctioned or rejected loan nothing is owed, so the borrower UI shows "—" instead of the full total as "outstanding". The API field is unchanged.

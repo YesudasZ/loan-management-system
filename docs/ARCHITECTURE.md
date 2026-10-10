@@ -41,15 +41,15 @@ The role check runs **before** validation and any lookup, so an unauthorised cal
 
 ### Modules (`src/modules/`)
 
-| Module      | Endpoints                                            | Notes                                                                                 |
-| ----------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `auth`      | signup, login, logout, me                            | bcrypt, a generic login error with equal timing, three rate limits                    |
-| `borrower`  | progress, profile                                    | saving the profile runs the BRE (422 lists every failure; the profile is still saved) |
-| `uploads`   | borrower slip upload/download, loan slip download    | multer memory storage → type check (extension + MIME + magic bytes) → GridFS          |
-| `loans`     | apply; staff list, detail, approve, reject, disburse | each transition is one conditional `findOneAndUpdate({ _id, status: from })`          |
-| `payments`  | list, record                                         | one MongoDB transaction: insert payment, `$inc totalPaid`, auto-close                 |
-| `dashboard` | leads, summary                                       | aggregations; leads are borrowers with no loan yet                                    |
-| `health`    | `GET /health`                                        | pings the database (2 s cap), 503 when it's down                                      |
+| Module      | Endpoints                                                                             | Notes                                                                                 |
+| ----------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `auth`      | signup, login, logout, me                                                             | bcrypt, a generic login error with equal timing, three rate limits                    |
+| `borrower`  | progress, profile                                                                     | saving the profile runs the BRE (422 lists every failure; the profile is still saved) |
+| `uploads`   | borrower slip upload/download, loan slip download                                     | multer memory storage → type check (extension + MIME + magic bytes) → GridFS          |
+| `loans`     | apply, the borrower's own loan history; staff list, detail, approve, reject, disburse | each transition is one conditional `findOneAndUpdate({ _id, status: from })`          |
+| `payments`  | list, record                                                                          | one MongoDB transaction: insert payment, `$inc totalPaid`, auto-close                 |
+| `dashboard` | leads, summary                                                                        | aggregations; leads are borrowers with no loan yet                                    |
+| `health`    | `GET /health`                                                                         | pings the database (2 s cap), 503 when it's down                                      |
 
 ### Key rules and where they live
 

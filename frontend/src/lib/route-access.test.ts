@@ -4,6 +4,7 @@ import {
   getAllowedModules,
   getHomePath,
   getSafeNextPath,
+  MY_LOANS_PATH,
   resolveRouteAccess,
 } from './route-access';
 
@@ -52,6 +53,17 @@ describe('resolveRouteAccess', () => {
     expect(resolveRouteAccess('/apply', 'ADMIN')).toEqual(redirect('/forbidden'));
     expect(resolveRouteAccess('/apply/loan', 'SANCTION')).toEqual(redirect('/forbidden'));
     expect(resolveRouteAccess('/apply/loan', 'BORROWER')).toEqual(allow);
+  });
+
+  it("opens My loans (and a loan's page) to borrowers only", () => {
+    const loanPage = `${MY_LOANS_PATH}/64b7f0c2a1b2c3d4e5f60718`;
+    expect(resolveRouteAccess(MY_LOANS_PATH, 'BORROWER')).toEqual(allow);
+    expect(resolveRouteAccess(loanPage, 'BORROWER')).toEqual(allow);
+    expect(resolveRouteAccess(MY_LOANS_PATH, 'ADMIN')).toEqual(redirect('/forbidden'));
+    expect(resolveRouteAccess(loanPage, 'COLLECTION')).toEqual(redirect('/forbidden'));
+    expect(resolveRouteAccess(MY_LOANS_PATH, null)).toEqual(
+      redirect('/login?next=%2Fapply%2Floans'),
+    );
   });
 
   it('lets an executive into their own module only', () => {

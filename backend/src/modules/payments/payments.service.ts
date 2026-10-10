@@ -16,6 +16,8 @@ import { toPaymentDto, type PaymentDto } from './payments.dto.js';
 import type { RecordPaymentBody } from './payments.schema.js';
 
 const NOT_DISBURSED_MESSAGE = 'Payments can only be recorded for disbursed loans.';
+/** The history note on the automatic CLOSED transition (the test-data seed writes it too). */
+export const AUTO_CLOSE_NOTE = 'Auto-closed: fully repaid';
 
 /** The auto-close update, applied in the same write that brings the balance to zero. */
 function buildLoanUpdate(loan: LoanDocument, actor: AuthUser, amount: number) {
@@ -35,7 +37,7 @@ function buildLoanUpdate(loan: LoanDocument, actor: AuthUser, amount: number) {
         by: actor.id,
         byRole: actor.role,
         at: now,
-        note: 'Auto-closed: fully repaid',
+        note: AUTO_CLOSE_NOTE,
       },
     },
   };

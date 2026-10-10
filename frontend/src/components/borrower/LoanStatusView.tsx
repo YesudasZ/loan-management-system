@@ -3,7 +3,7 @@ import { Alert } from '@/components/ui/Alert';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import type { Role } from '@/lib/constants';
 import { formatDateTime, formatInr } from '@/lib/format';
-import type { BorrowerLoan, LoanStatus } from '@/types/loan';
+import { isRepaymentDue, type BorrowerLoan, type LoanStatus } from '@/types/loan';
 
 const STATUS_EXPLANATIONS: Record<LoanStatus, string> = {
   APPLIED: 'Your application is with our sanction team for review.',
@@ -49,8 +49,14 @@ function Amount({
   );
 }
 
-export function LoanStatusView({ loan }: { loan: BorrowerLoan }) {
-  const canApplyAgain = loan.status === 'REJECTED' || loan.status === 'CLOSED';
+interface LoanStatusViewProps {
+  loan: BorrowerLoan;
+  /** "Apply again" only makes sense on the latest loan, not when browsing past ones. */
+  showNextSteps?: boolean;
+}
+
+export function LoanStatusView({ loan, showNextSteps = true }: LoanStatusViewProps) {
+  const canApplyAgain = showNextSteps && (loan.status === 'REJECTED' || loan.status === 'CLOSED');
 
   return (
     <div className="flex flex-col gap-6">
@@ -70,8 +76,12 @@ export function LoanStatusView({ loan }: { loan: BorrowerLoan }) {
           paise={loan.simpleInterest}
         />
         <Amount label="Total repayment" paise={loan.totalRepayment} isHighlighted />
-        <Amount label="Paid so far" paise={loan.totalPaid} />
-        <Amount label="Outstanding" paise={loan.outstanding} isHighlighted />
+        {isRepaymentDue(loan.status) && (
+          <>
+            <Amount label="Paid so far" paise={loan.totalPaid} />
+            <Amount label="Outstanding" paise={loan.outstanding} isHighlighted />
+          </>
+        )}
       </dl>
 
       <section aria-labelledby="timeline-heading">

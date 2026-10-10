@@ -2,16 +2,17 @@
 
 One entry per merged branch, newest last. Each entry says what changed and how to test it by hand.
 
-| #   | Branch                         | Status                               |
-| --- | ------------------------------ | ------------------------------------ |
-| 1   | `chore/repo-setup`             | merged                               |
-| 2   | `feat/backend-foundation-auth` | merged                               |
-| 3   | `feat/frontend-foundation`     | merged                               |
-| 4   | `feat/borrower-journey`        | merged                               |
-| 5   | `feat/operations-modules`      | merged (E2E)                         |
-| 6   | `feat/sales-admin-overview`    | merged                               |
-| 7   | `test/rbac-security-hardening` | merged                               |
-| 8   | `docs/readme-polish-release`   | in review (tag `v1.0.0` after merge) |
+| #   | Branch                         | Status                   |
+| --- | ------------------------------ | ------------------------ |
+| 1   | `chore/repo-setup`             | merged                   |
+| 2   | `feat/backend-foundation-auth` | merged                   |
+| 3   | `feat/frontend-foundation`     | merged                   |
+| 4   | `feat/borrower-journey`        | merged                   |
+| 5   | `feat/operations-modules`      | merged (E2E)             |
+| 6   | `feat/sales-admin-overview`    | merged                   |
+| 7   | `test/rbac-security-hardening` | merged                   |
+| 8   | `docs/readme-polish-release`   | merged (tagged `v1.0.0`) |
+| 9   | `feat/seed-test-data`          | in review                |
 
 ---
 
@@ -274,3 +275,43 @@ Locally, after `npm run seed --prefix backend` with both apps running:
   4. The borrower sees CLOSED.
 - [ ] Upload the video as unlisted, and put the link in the README ("Demo video") and the `v1.0.0` release notes.
 - [ ] Submit the repository URL, the live URL and the demo credentials (README "Demo accounts").
+
+## 9. `feat/seed-test-data`
+
+Goal: every login (all 6 roles) sees at least 5 records right after logging in.
+
+**What changed**
+
+- **My loans (borrowers):**
+  - `GET /api/v1/borrower/loans` (paginated, newest first) and `GET /api/v1/borrower/loans/:loanId`. Both are BORROWER-only and always scoped to the logged-in borrower; another borrower's loan id → 404.
+  - `/apply/loans` lists every loan (amount + tenure, total, paid, outstanding, status, date), with cards on phones. Each loan opens a read-only detail page with its timeline.
+  - It's linked from a new header tab and from the status page ("See all my loans").
+- **Paid / outstanding before disbursal:** both are now hidden ("—") until a loan is disbursed, on the status page too. Before, a rejected loan showed its full total as "outstanding".
+- **Test data** (`npm run seed -- --test-data`, removable with `--remove-test-data`):
+  - 25 staff (`admin1–5`, `sales1–5`, `sanction1–5`, `disbursement1–5`, `collection1–5`)
+  - 25 borrowers (`applied1–5`, `sanctioned1–5`, `disbursed1–5`, `closed1–5`, `rejected1–5`), each with exactly 5 loans: 4 finished past loans and 1 current
+  - 10 Sales leads at every stage
+  - All on `@test.lms.dev` with password `Test@1234`: 125 loans and 159 payments over the last 90 days
+- **How the test loans are built:** each loan runs through the real rules (apply schema, BRE, `calculateLoanQuote`, `LOAN_ACTIONS` / `getNextStatus`, `validatePayment`), so totals, history, payments and balances always agree. The plain seed is unchanged and never touches `@lms.dev`.
+- **Refactors:** the demo seed moved to `seed-demo.ts` (importable by tests). The payment roles and the auto-close note are now shared constants.
+- **Tests:**
+  - backend **424** (was 326): borrower loans (IDOR, RBAC, pagination); the RBAC matrix now 18 endpoints × 7 = **126 cells**; the test-data seed (consistency of every loan, counts per status, staff spread, idempotent re-seed, removal leaves the demo data identical); and **a login as each of the 60 test accounts**, checking what that role sees
+  - frontend **77**
+- **Docs:** `docs/TEST_ACCOUNTS.md` (credentials, every borrower's 5 loans, what each role sees, an RBAC checklist, a suggested flow), API table, README, DEPLOYMENT (production commands), SECURITY, DECISIONS 67–71.
+- **Checked in the browser** (local, in-memory DB):
+  - `disbursed3@` status page → My loans (5 loans) → a rejected loan's detail
+  - the 375 px card layout
+  - `sanction1@` queue with the 5 test applications
+
+**Manual test steps**
+
+Locally, with your backend on your `lms_dev` database:
+
+1. `npm run seed --prefix backend -- --test-data`. The log ends with `"loans":125,"payments":159,"msg":"Test data added"`. Run it again: same counts.
+2. Log in as `closed1@test.lms.dev` / `Test@1234`. The status page shows CLOSED → **My loans** shows 5 loans → open a REJECTED one: the reason is shown, with no "Apply again" and no outstanding.
+3. Log in as `sanction1@`, `disbursement1@` and `collection1@`. Each queue has at least 5 test loans; the sanction review shows the PDF slip, and the collection loans show payment history.
+4. `admin1@`: Overview counts are at least 5 for every status. `sales1@`: 10 test leads with mixed stages.
+5. Follow the RBAC checklist and the suggested flow in `docs/TEST_ACCOUNTS.md`.
+6. `npm run seed --prefix backend -- --remove-test-data`: the `@test.lms.dev` accounts are gone, and the `@lms.dev` demo logins still work with their data.
+
+**After the merge (production):** run the commands in DEPLOYMENT.md, "Test data in production". Then record the demo video together (you type the signup, logins and PAN; I drive the rest).

@@ -45,9 +45,10 @@ export async function deleteSalarySlipFile(fileId: Types.ObjectId): Promise<void
   await getBucket().delete(fileId);
 }
 
-/** Deletes every slip uploaded by these users (used by the seed to reset demo borrowers). */
-export async function deleteSalarySlipFilesOwnedBy(ownerIds: Types.ObjectId[]): Promise<void> {
+/** Deletes every slip uploaded by these users (the seeds' resets) and returns how many. */
+export async function deleteSalarySlipFilesOwnedBy(ownerIds: Types.ObjectId[]): Promise<number> {
   const bucket = getBucket();
   const files = await bucket.find({ 'metadata.ownerId': { $in: ownerIds } }).toArray();
   await Promise.all(files.map((file) => bucket.delete(file._id)));
+  return files.length;
 }

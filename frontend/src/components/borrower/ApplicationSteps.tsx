@@ -1,11 +1,13 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { PageSpinner } from '@/components/ui/Spinner';
 import { useApiQuery } from '@/hooks/useApiQuery';
+import { MY_LOANS_PATH } from '@/lib/route-access';
 import { getStepPath } from '@/lib/wizard';
 import type { BorrowerProgress } from '@/types/loan';
 import { LoanCalculator } from './LoanCalculator';
@@ -83,6 +85,12 @@ export function StatusStep() {
           <>
             <PageHeader title="Your loan" />
             <LoanStatusView loan={progress.latestLoan} />
+            <p className="mt-8 border-t border-slate-200 pt-4 text-sm text-slate-600">
+              Looking for an earlier loan?{' '}
+              <Link href={MY_LOANS_PATH} className="font-medium text-indigo-700 hover:underline">
+                See all my loans
+              </Link>
+            </p>
           </>
         )
       }

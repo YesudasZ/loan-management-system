@@ -8,6 +8,8 @@ import { toBusinessDate } from '../../utils/dates.js';
 import { isDuplicateKeyError } from '../../utils/duplicate-key.js';
 import { calculateLoanQuote } from '../../utils/loan-math.js';
 import { ACTIVE_LOAN_STATUSES } from '../../utils/loan-state-machine.js';
+import { toPaginated, toSkip, type Paginated } from '../../utils/pagination.js';
+import type { PaginationQuery } from '../../utils/schemas.js';
 import type { AuthUser } from '../auth/auth.types.js';
 import { toBreInput } from '../borrower/borrower.dto.js';
 import { toBorrowerLoanDto, type BorrowerLoanDto } from './loans.dto.js';
@@ -33,6 +35,37 @@ export async function assertNoActiveLoan(borrowerId: string, message: string): P
 
 export function findLatestLoan(borrowerId: string): Promise<LoanDocument | null> {
   return LoanModel.findOne({ borrowerId }).sort({ createdAt: -1, _id: -1 });
+}
+
+/**
+ * The borrower's own loans, newest first. Always filtered by the logged-in borrower's id, never
+ * by an id from the request, so one borrower can't list another's loans (IDOR).
+ */
+export async function listBorrowerLoans(
+  borrowerId: string,
+  query: PaginationQuery,
+): Promise<Paginated<BorrowerLoanDto>> {
+  const filter = { borrowerId };
+  const [loans, totalItems] = await Promise.all([
+    LoanModel.find(filter)
+      .sort({ createdAt: -1, _id: -1 })
+      .skip(toSkip(query.page, query.limit))
+      .limit(query.limit),
+    LoanModel.countDocuments(filter),
+  ]);
+  return toPaginated(loans.map(toBorrowerLoanDto), totalItems, query.page, query.limit);
+}
+
+/** One of the borrower's own loans. Another borrower's loan is a 404, as if it didn't exist. */
+export async function getBorrowerLoan(
+  borrowerId: string,
+  loanId: string,
+): Promise<BorrowerLoanDto> {
+  const loan = await LoanModel.findOne({ _id: loanId, borrowerId });
+  if (!loan) {
+    throw new AppError(404, 'NOT_FOUND', 'Loan not found');
+  }
+  return toBorrowerLoanDto(loan);
 }
 
 /** True when any loan application still points at this salary slip file. */

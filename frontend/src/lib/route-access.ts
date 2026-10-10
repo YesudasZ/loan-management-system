@@ -29,6 +29,8 @@ export const DASHBOARD_MODULES: readonly DashboardModule[] = [
 
 export const LOGIN_PATH = '/login';
 export const FORBIDDEN_PATH = '/forbidden';
+/** The borrower's loan history (inside /apply, so the borrower-only rule covers it). */
+export const MY_LOANS_PATH = '/apply/loans';
 const AUTH_PAGES = new Set(['/login', '/signup']);
 
 export type RouteDecision = { type: 'allow' } | { type: 'redirect'; to: string };
@@ -51,7 +53,7 @@ export function getHomePath(role: Role): string {
   return getAllowedModules(role)[0]?.path ?? FORBIDDEN_PATH;
 }
 
-function isUnder(pathname: string, base: string): boolean {
+export function isUnder(pathname: string, base: string): boolean {
   return pathname === base || pathname.startsWith(`${base}/`);
 }
 

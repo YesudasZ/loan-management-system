@@ -148,6 +148,25 @@ const ENDPOINTS: EndpointCase[] = [
     },
   },
   {
+    name: 'GET /borrower/loans',
+    method: 'get',
+    path: '/api/v1/borrower/loans',
+    allowed: ['BORROWER'],
+    successStatus: 200,
+    prepareAllowed: () => Promise.resolve({ path: '/api/v1/borrower/loans' }),
+  },
+  {
+    name: 'GET /borrower/loans/:loanId',
+    method: 'get',
+    path: `/api/v1/borrower/loans/${ANY_ID}`,
+    allowed: ['BORROWER'],
+    successStatus: 200,
+    prepareAllowed: async ({ app }) => {
+      const { loanId, borrower } = await createAppliedLoan(app);
+      return { path: `/api/v1/borrower/loans/${loanId}`, cookie: borrower.cookie };
+    },
+  },
+  {
     name: 'GET /loans',
     method: 'get',
     path: '/api/v1/loans',
@@ -299,7 +318,7 @@ describe('RBAC matrix: every protected endpoint × every identity', () => {
     });
   }
 
-  it('covers 16 protected endpoints × 7 identities', () => {
-    expect(ENDPOINTS.length * IDENTITIES.length).toBe(112);
+  it('covers 18 protected endpoints × 7 identities', () => {
+    expect(ENDPOINTS.length * IDENTITIES.length).toBe(126);
   });
 });

@@ -1,5 +1,9 @@
+import type { Role } from '../config/constants.js';
 import { formatRupees } from './money.js';
 import type { CalendarDate } from './dates.js';
+
+/** Roles that may record a payment (the routes and the test-data seed both use this). */
+export const PAYMENT_RECORDER_ROLES: readonly Role[] = ['COLLECTION', 'ADMIN'];
 
 export type PaymentRule = 'AMOUNT_EXCEEDS_OUTSTANDING' | 'DATE_IN_FUTURE' | 'DATE_BEFORE_DISBURSAL';
 

@@ -195,3 +195,26 @@ The first sign-up attempt returned 403 `INVALID_ORIGIN`, because Render was stil
 5. **`TRUST_PROXY_HOPS`** measured as in checkpoint B step 5.
 6. **Deployed end-to-end run:** BRE fail → fix → upload → apply → approve → disburse → partial payment → duplicate UTR rejected → final payment auto-closes → the borrower sees CLOSED (PROGRESS.md §5).
 7. **Re-seed once more after the E2E run,** so evaluators start from the documented demo data.
+
+## Test data in production
+
+Optional QA data on `@test.lms.dev` ([TEST_ACCOUNTS.md](TEST_ACCOUNTS.md)). It runs from your laptop, like the demo seed, and never touches the `@lms.dev` demo accounts.
+
+1. **Get the right code and dependencies.** Pull the latest `main` and run `npm ci --prefix backend`.
+2. **Check Atlas network access.** Atlas → **Security → Network Access** must allow your IP. `0.0.0.0/0` (set for Render) already covers it; otherwise **Add Current IP Address**.
+3. **Keep the password out of your shell history.** Run `read -rs PROD_URI`, paste the `lms_prod` connection string (`mongodb+srv://lms_prod_app:<password>@<cluster>/lms_prod?retryWrites=true&w=majority`) and press Enter. Nothing is echoed.
+4. **Add (or reset) the test data:**
+
+   ```bash
+   cd backend && MONGODB_URI="$PROD_URI" NODE_ENV=production LOG_LEVEL=info npm run seed -- --test-data --force
+   ```
+
+   Expected log: `"users":60,"profiles":33,"salarySlips":27,"loans":125,"payments":159,"msg":"Test data added"`.
+
+5. **Remove it again** (deletes only `@test.lms.dev` users and what they own):
+
+   ```bash
+   cd backend && MONGODB_URI="$PROD_URI" NODE_ENV=production LOG_LEVEL=info npm run seed -- --remove-test-data --force
+   ```
+
+The other required variables (`JWT_SECRET`, `CORS_ORIGINS`, `TRUST_PROXY_HOPS`) come from your local `backend/.env`; the seed only uses the database. `LOG_LEVEL=info` makes sure the summary line prints even if your `.env` sets a quieter level. Re-running `--test-data` moves every date relative to the new run.

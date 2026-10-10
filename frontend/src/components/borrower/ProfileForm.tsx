@@ -16,16 +16,10 @@ import {
   type EmploymentMode,
 } from '@/lib/constants';
 import { toBusinessDate } from '@/lib/dates';
+import { ELIGIBILITY_RULE_LABELS } from '@/lib/loan-terms';
 import { paiseToRupeeInput, parseRupeesToPaise } from '@/lib/format';
 import type { BorrowerProfile } from '@/types/loan';
 import { BreFailureList } from './BreFailureList';
-
-const RULE_LABELS: Record<BreRule, string> = {
-  AGE: 'Age between 23 and 50',
-  SALARY: 'Monthly salary of at least ₹25,000',
-  PAN: 'Valid PAN format',
-  EMPLOYMENT: 'Salaried or self-employed',
-};
 
 const employmentOptions = EMPLOYMENT_MODES.map((mode) => ({
   value: mode,
@@ -39,10 +33,13 @@ function EligibilityPreview({ failures }: { failures: BreFailure[] }) {
     <div className="rounded-md border border-slate-200 bg-slate-50 p-4">
       <p className="text-sm font-medium text-slate-800">Eligibility preview</p>
       <ul className="mt-2 space-y-1 text-sm">
-        {(Object.keys(RULE_LABELS) as BreRule[]).map((rule) => (
-          <li key={rule} className={failedRules.has(rule) ? 'text-red-700' : 'text-green-700'}>
+        {(Object.keys(ELIGIBILITY_RULE_LABELS) as BreRule[]).map((rule) => (
+          <li
+            key={rule}
+            className={failedRules.has(rule) ? 'text-danger-strong' : 'text-accent-strong'}
+          >
             <span aria-hidden="true">{failedRules.has(rule) ? '✗ ' : '✓ '}</span>
-            {RULE_LABELS[rule]}
+            {ELIGIBILITY_RULE_LABELS[rule]}
             <span className="sr-only">{failedRules.has(rule) ? ': not met' : ': met'}</span>
           </li>
         ))}

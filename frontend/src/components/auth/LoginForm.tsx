@@ -78,9 +78,12 @@ export function LoginForm({ next }: { next: string | null }) {
       </Button>
       <p className="text-center text-sm text-slate-600">
         New here?{' '}
-        <Link href="/signup" className="font-medium text-indigo-700 hover:underline">
+        <Link href="/signup" className="font-medium text-primary hover:underline">
           Create an account
         </Link>
+      </p>
+      <p className="border-t border-slate-200 pt-4 text-center text-xs text-slate-500">
+        Staff and borrowers use the same login.
       </p>
     </form>
   );

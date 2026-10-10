@@ -7,6 +7,7 @@ import { ErrorState } from '@/components/ui/ErrorState';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { PageSpinner } from '@/components/ui/Spinner';
 import { useApiQuery } from '@/hooks/useApiQuery';
+import { ELIGIBILITY_SUMMARY, LOAN_TERMS } from '@/lib/loan-terms';
 import { MY_LOANS_PATH } from '@/lib/route-access';
 import { getStepPath } from '@/lib/wizard';
 import type { BorrowerProgress } from '@/types/loan';
@@ -36,7 +37,7 @@ export function ProfileStep() {
         <>
           <PageHeader
             title="Personal details"
-            description="We check your eligibility instantly: age 23–50, salary ₹25,000+ a month, a valid PAN, and salaried or self-employed."
+            description={`We check your eligibility instantly: ${ELIGIBILITY_SUMMARY}.`}
           />
           <ProfileForm profile={progress.profile} />
         </>
@@ -68,7 +69,7 @@ export function LoanStep() {
         <>
           <PageHeader
             title="Choose your loan"
-            description="₹50,000 to ₹5,00,000 for 30 to 365 days, at 12% a year simple interest."
+            description={`${LOAN_TERMS.amountRange} for ${LOAN_TERMS.tenureRange}, at ${LOAN_TERMS.interest}.`}
           />
           <LoanCalculator />
         </>
@@ -87,7 +88,7 @@ export function StatusStep() {
             <LoanStatusView loan={progress.latestLoan} />
             <p className="mt-8 border-t border-slate-200 pt-4 text-sm text-slate-600">
               Looking for an earlier loan?{' '}
-              <Link href={MY_LOANS_PATH} className="font-medium text-indigo-700 hover:underline">
+              <Link href={MY_LOANS_PATH} className="font-medium text-primary hover:underline">
                 See all my loans
               </Link>
             </p>

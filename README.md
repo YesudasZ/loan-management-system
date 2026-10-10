@@ -1,16 +1,32 @@
 # Loan Management System
 
+## Submission
+
+- **Live app:** https://loan-management-system-beta-pearl.vercel.app
+- **Demo video:** <VIDEO_LINK>
+- **API health:** https://loan-management-system-wl8j.onrender.com/health
+- **Step-by-step test guide:** [docs/EVALUATOR_GUIDE.md](docs/EVALUATOR_GUIDE.md) (credentials plus a 10-step walkthrough of the full flow)
+
+> The backend runs on Render's free tier; the first request after idle can take up to a minute to wake up. The app shows a "Waking up the server" banner while it retries.
+
+| Role         | Email                  | Password       | Lands on                                   | What to test                                                                                                   |
+| ------------ | ---------------------- | -------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| Admin        | `admin@lms.dev`        | `Password@123` | `/dashboard` (Overview)                    | Loan counts by status; every module in the sidebar; the **Staff** page (add staff, change roles)               |
+| Sales        | `sales@lms.dev`        | `Password@123` | `/dashboard/sales`                         | Leads: borrowers who registered but haven't applied, with their stage                                          |
+| Sanction     | `sanction@lms.dev`     | `Password@123` | `/dashboard/sanction`                      | APPLIED loans: view the salary slip, **Approve**, or **Reject** with a reason                                  |
+| Disbursement | `disbursement@lms.dev` | `Password@123` | `/dashboard/disbursement`                  | SANCTIONED loans: **Mark disbursed**                                                                           |
+| Collection   | `collection@lms.dev`   | `Password@123` | `/dashboard/collection`                    | DISBURSED loans: **Record payment** (UTR, amount, date); duplicate UTR and overpayment are refused; auto-close |
+| Borrower     | `borrower@lms.dev`     | `Password@123` | `/apply` (resumes at the next wizard step) | Personal details + eligibility check, salary slip upload, loan sliders, apply, status page, **My loans**       |
+
+Public signup always creates a BORROWER; staff roles are assigned by an admin on the Staff page.
+
+**Log out** is the button at the top right of every page (in the staff dashboard, next to your name and role). Test each role in turn: log out, then log in as the next account. Opening another role's page shows the 403 page, and the API refuses the request too.
+
+## About
+
 A lending platform where borrowers apply for a personal loan online, and internal teams (Sales, Sanction, Disbursement, Collection, Admin) move each loan through its lifecycle until it is repaid:
 
 `APPLIED → SANCTIONED → DISBURSED → CLOSED` (or `APPLIED → REJECTED`)
-
-|                |                                                         |
-| -------------- | ------------------------------------------------------- |
-| **Web app**    | https://loan-management-system-beta-pearl.vercel.app    |
-| **API health** | https://loan-management-system-wl8j.onrender.com/health |
-| **Demo video** | _link added at submission_                              |
-
-> The API runs on Render's free tier, which sleeps after about 15 minutes idle. The first request can take up to a minute; the app shows a "Waking up the server" banner while it retries.
 
 ## Demo accounts
 
@@ -200,7 +216,7 @@ frontend/src/
   lib/            api-client, route-access, bre, loan-math, wizard, format, dates
   hooks/, types/
   proxy.ts        role-aware route guard (Next 16's renamed middleware)
-docs/             API, ARCHITECTURE, DECISIONS, DEPLOYMENT, SECURITY, TEST_ACCOUNTS, UI, screenshots/
+docs/             EVALUATOR_GUIDE, API, ARCHITECTURE, DECISIONS, DEPLOYMENT, SECURITY, TEST_ACCOUNTS, UI, screenshots/
 audit/            pre-submission audit: AUDIT_REPORT.md, findings/, evidence scripts/
 ```
 

@@ -55,9 +55,14 @@ The canonical API reference. Each feature branch adds the rows for the endpoints
 | GET | `/api/v1/loans/:loanId/payments` | COLLECTION (DISBURSED loans only), ADMIN | `?page&limit` | 200 paginated `Payment` (newest first) | 400, 401, 403, 404 |
 | POST | `/api/v1/loans/:loanId/payments` | COLLECTION, ADMIN | `{ utr (6–30 letters/digits, trimmed + uppercased), amount (paise, > 0), paymentDate: 'YYYY-MM-DD' }` | 201 `{ payment, loan: LoanDetail }`. The insert, `totalPaid` increment and auto-close run in one transaction; `loan.status` is `CLOSED` when the balance reaches 0. | 400, 401, 403, 404, 409 `LOAN_NOT_DISBURSED` / `DUPLICATE_UTR`, 422 `PAYMENT_RULES_FAILED` (amount > outstanding, date in the future or before disbursal) |
 
+| GET | `/api/v1/leads` | SALES, ADMIN | `?page&limit` | 200 paginated `Lead` (borrowers with no loan of any status, newest first) | 400, 401, 403 |
+| GET | `/api/v1/dashboard/summary` | ADMIN | — | 200 `{ loansByStatus: { APPLIED, SANCTIONED, REJECTED, DISBURSED, CLOSED } (zero-filled), leadCount }` | 401, 403 |
+
 Staff actions return 404 only when the loan id doesn't exist; a loan in the wrong status is 409. Reads are scoped: an executive gets 404 for loans outside their module's status.
 
 `LoanSummary` = `{ id, borrower: { name, email }, applicant: { fullName, panMasked }, principal, tenureDays, totalRepayment, totalPaid, outstanding, status, createdAt, disbursedAt }`. `LoanDetail` adds `applicant.{ dateOfBirth, monthlySalary, employmentMode, breResult }`, `salarySlip`, `annualInterestRate`, `simpleInterest`, `rejectionReason`, `closedAt` and `statusHistory: [{ from, to, at, note, by: { name, role } }]`. Staff never see a full PAN.
+
+`Lead` = `{ id, name, email, registeredAt, stage: 'PROFILE_PENDING' | 'BRE_FAILED' | 'SALARY_SLIP_PENDING' | 'READY_TO_APPLY', breFailures: [{ rule, message }] }`. The stage uses the BRE re-evaluated with today's date.
 
 `Payment` = `{ id, utr, amount, paymentDate, recordedBy: { name }, createdAt }`.
 

@@ -100,7 +100,7 @@ All seeded accounts use the password `Password@123`.
 | `demo.rejected@lms.dev`                              | BORROWER: loan REJECTED, with a reason                                        |
 | `demo.closed@lms.dev`                                | BORROWER: loan CLOSED (fully repaid in two payments)                          |
 
-This is a demo system with shared, published credentials: don't enter real personal data.
+This is a demo system with shared, published credentials: don't enter real personal data. See [docs/SECURITY.md](docs/SECURITY.md) for the security model, the test evidence and the known limitations.
 
 ## Deployment
 

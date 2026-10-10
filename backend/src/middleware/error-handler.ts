@@ -8,9 +8,25 @@ const bodyParserErrorSchema = z.object({
   type: z.enum(['entity.parse.failed', 'entity.too.large']),
 });
 
+// Other library errors that are the client's fault say so with a 4xx `status` (the http-errors
+// convention used by body-parser and Express's router): an unsupported charset or
+// Content-Encoding, a corrupt compressed body, a badly %-encoded path. They must not be 500s.
+const clientErrorSchema = z.object({ status: z.number().int().min(400).max(499) });
+
 export const notFoundHandler: RequestHandler = (_req, _res, next) => {
   next(new AppError(404, 'NOT_FOUND', 'Route not found'));
 };
+
+/** A generic message per status: the library's own message can reveal internals. */
+function toClientAppError(status: number): AppError {
+  if (status === 413) {
+    return new AppError(413, 'PAYLOAD_TOO_LARGE', 'Request body is too large');
+  }
+  if (status === 415) {
+    return new AppError(415, 'UNSUPPORTED_MEDIA_TYPE', 'Unsupported content type or encoding');
+  }
+  return new AppError(400, 'BAD_REQUEST', 'The request could not be understood');
+}
 
 /** Maps any thrown value to a client-safe AppError. Unknown errors never leak their details. */
 function toAppError(error: unknown): AppError {
@@ -29,6 +45,10 @@ function toAppError(error: unknown): AppError {
     return bodyParserError.data.type === 'entity.too.large'
       ? new AppError(413, 'PAYLOAD_TOO_LARGE', 'Request body is too large')
       : new AppError(400, 'INVALID_JSON', 'Request body is not valid JSON');
+  }
+  const clientError = clientErrorSchema.safeParse(error);
+  if (clientError.success) {
+    return toClientAppError(clientError.data.status);
   }
   return new AppError(500, 'INTERNAL_ERROR', 'Something went wrong. Please try again later.');
 }

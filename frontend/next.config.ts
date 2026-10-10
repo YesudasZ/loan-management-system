@@ -22,6 +22,9 @@ const pageSecurityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Stops `next dev` writing an AGENTS.md into the repo when it detects an AI coding agent;
+  // the project's own rules live in CLAUDE.md.
+  agentRules: false,
   turbopack: {
     // The repo root has its own lockfile (tooling only); this app's root is this folder.
     root: __dirname,

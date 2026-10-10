@@ -186,7 +186,7 @@ backend/
   src/
     config/       env (zod), db, constants, logger
     middleware/   authenticate, require-role, validate, verify-origin, rate-limit, upload, error-handler
-    modules/      auth, borrower, loans, payments, uploads, dashboard, health
+    modules/      auth, borrower, loans, payments, uploads, dashboard, admin, health
                   (*.routes.ts → *.controller.ts → *.service.ts, *.schema.ts, *.dto.ts)
     models/       user, borrower-profile, loan, payment
     utils/        bre, loan-math, loan-state-machine, payment-rules, dates, pan, jwt, …
@@ -200,12 +200,15 @@ frontend/src/
   lib/            api-client, route-access, bre, loan-math, wizard, format, dates
   hooks/, types/
   proxy.ts        role-aware route guard (Next 16's renamed middleware)
-docs/             API, ARCHITECTURE, DECISIONS, DEPLOYMENT, SECURITY
+docs/             API, ARCHITECTURE, DECISIONS, DEPLOYMENT, SECURITY, TEST_ACCOUNTS, UI, screenshots/
+audit/            pre-submission audit: AUDIT_REPORT.md, findings/, evidence scripts/
 ```
 
 ## Local setup
 
 **Prerequisites:** Node 24 (`nvm use`) and npm 11. There is no local MongoDB: the app uses a free Atlas cluster with an `lms_dev` database ([docs/DEPLOYMENT.md](docs/DEPLOYMENT.md), steps 1–2). Tests use an in-memory MongoDB and never touch Atlas.
+
+The database **must be a replica set**, because recording a payment uses a transaction. Atlas always is. If you use your own MongoDB instead, start it as a single-node replica set (`mongod --replSet rs0`, then `rs.initiate()` once); on a standalone `mongod` everything works except payments, which fail with a 500.
 
 1. Install dependencies. The root install only adds git hooks and Prettier.
 
@@ -221,6 +224,8 @@ docs/             API, ARCHITECTURE, DECISIONS, DEPLOYMENT, SECURITY
    npm install --prefix frontend
    ```
 
+   npm then reports 5 high-severity advisories in the frontend. They're in the dev-only lint tooling (`braces` via `eslint-config-next`), never shipped, and have no published fix ([docs/SECURITY.md](docs/SECURITY.md)); don't run `npm audit fix --force`, which downgrades Next's ESLint config. `allow-scripts` warnings about bcrypt, esbuild and mongodb-memory-server are harmless.
+
 2. Configure the backend: copy the example, then set `MONGODB_URI` (`…/lms_dev?…`) and `JWT_SECRET` (`openssl rand -base64 48`). Every variable is validated at startup.
 
    ```bash
@@ -233,7 +238,7 @@ docs/             API, ARCHITECTURE, DECISIONS, DEPLOYMENT, SECURITY
    cp frontend/.env.example frontend/.env.local
    ```
 
-4. Seed the demo accounts and data. It's safe to re-run: it resets the demo accounts and never touches other users.
+4. Seed the demo accounts and data. It's safe to re-run: it resets the 17 demo accounts (role and password) and their loans, and leaves other users alone. It also deletes any payment whose UTR starts with `SEED` (the prefix the seed uses), so don't record real payments with that prefix.
 
    ```bash
    npm run seed --prefix backend
@@ -279,11 +284,13 @@ npm run build
 npm run secrets
 ```
 
-- **Backend: 477 tests.**
+Tests and lint need no configuration. `typecheck` and `build` read `frontend/.env.local` (setup step 3), because Next validates `BACKEND_URL` and `JWT_SECRET` when it loads its config.
+
+- **Backend: 491 tests.**
   - Unit: BRE, loan math, state machine, payment rules, dates, JWT, env, log redaction, cookie flags.
-  - Integration (supertest + in-memory replica set): auth, profile/BRE, uploads, apply, sanction/disbursement/collection, the payment transaction incl. concurrency, leads/summary, borrower loan history, staff management (each safety rule, plus two admins demoting each other at once), the **147-cell RBAC matrix**, an IDOR / injection / mass-assignment suite, and the test-data seed (consistency, idempotency, safe removal, and a login as each of the 60 test accounts).
-- **Frontend: 78 tests:** BRE and loan-math mirrors (shared vectors), route access and safe redirects, wizard redirects, formatting.
-- **CI** (GitHub Actions) on every PR: lint, typecheck, test, build and `npm audit` for each app, a full-history gitleaks scan, and a Conventional-Commit PR title check. `main` is protected and requires these checks.
+  - Integration (supertest + in-memory replica set): auth, profile/BRE, uploads, apply, sanction/disbursement/collection, the payment transaction incl. concurrency, leads/summary, borrower loan history, staff management (each safety rule, plus two admins demoting each other at once), the **147-cell RBAC matrix**, an IDOR / injection / mass-assignment suite, and the test-data seed (consistency, idempotency, safe removal, and a login as each of the 60 test accounts), malformed requests (always a 4xx, never a 500) and a database outage during login checks (503, the session is kept).
+- **Frontend: 98 tests:** BRE and loan-math mirrors (shared vectors), route access and safe redirects (including open-redirect payloads), wizard redirects, loan terms, the double-click guard, formatting.
+- **CI** (GitHub Actions) on every PR: lint, typecheck, test, build and `npm audit` for each app, a full-history gitleaks scan, and a Conventional-Commit PR title check. `main` is protected and requires the Backend, Frontend and Secret scan checks (the PR-title check runs on every PR but isn't required; [DECISIONS #24](docs/DECISIONS.md)).
 
 ## Deployment
 
@@ -305,7 +312,7 @@ Step-by-step instructions (Atlas, Render, Vercel, env vars, post-deploy checks) 
 
 ## Engineering process
 
-- **GitHub Flow:** short-lived branches, squash-merged PRs into a protected `main`, built in 8 PRs (see [PROGRESS.md](PROGRESS.md)).
+- **GitHub Flow:** short-lived branches, squash-merged PRs into a protected `main`, one PR per branch (each listed in [PROGRESS.md](PROGRESS.md)).
 - **Conventional Commits:** enforced by commitlint (husky); lint-staged runs ESLint and Prettier on commit.
 - **Every PR runs the Definition of Done** from [CLAUDE.md](CLAUDE.md): lint, typecheck, tests, build, audit, secret scan and a security self-review.
 - **Design decisions** and their reasons are recorded in [docs/DECISIONS.md](docs/DECISIONS.md). The original design is in [PLAN.md](PLAN.md).

@@ -37,7 +37,7 @@ Keep a private note of every secret you create (Atlas passwords, `JWT_SECRET`). 
 
 1. Generate a secret for local use: run `openssl rand -base64 48` and copy the output.
 2. `cp backend/.env.example backend/.env`, then set `MONGODB_URI` to the **dev** string and `JWT_SECRET` to the value from step 1.
-3. From `backend/`: `npm run seed` (creates the 6 role accounts), then `npm run dev`.
+3. From `backend/`: `npm run seed` (creates the 17 demo accounts: 5 staff, 12 borrowers), then `npm run dev`.
 4. `curl http://localhost:4000/health` should return `{"success":true,"data":{"status":"ok","database":"connected"}}`.
 
 ### 3. Render
@@ -123,7 +123,7 @@ Then **Save, rebuild, and deploy**. Wait for **Live**. Without this, every login
 Open the Vercel URL in a private window. If the API is asleep, a "Waking up the server" banner may show for up to a minute.
 
 1. `https://<name>.vercel.app/` redirects to `/login`.
-2. Log in as `admin@lms.dev` / `Password@123`. You land on **Overview** with all four modules in the sidebar.
+2. Log in as `admin@lms.dev` / `Password@123`. You land on **Overview** with all five modules in the sidebar (Sales, Sanction, Disbursement, Collection, Staff).
 3. DevTools → **Application → Cookies → https://\<name>.vercel.app**: `lms_token` has **HttpOnly** ✓, **Secure** ✓, **SameSite Lax**, and the domain is the Vercel domain.
 4. **Log out**, then log in as `sanction@lms.dev`. You land on `/dashboard/sanction`. Type `/dashboard/collection` and `/apply` in the address bar; both show the **403** page.
 5. Log in as `borrower@lms.dev`. You land on `/apply`. Typing `/dashboard` shows the 403 page.
@@ -184,7 +184,7 @@ The first sign-up attempt returned 403 `INVALID_ORIGIN`, because Render was stil
 1. **Rotate the database password.** In Atlas → **Security → Database Access**, find the user in your `MONGODB_URI` (e.g. `lms_prod_app`) → **Edit → Edit Password**, and autogenerate a new password.
    - Update `MONGODB_URI` on Render (then **Save, rebuild, and deploy**) and in your local `backend/.env`.
    - Make sure the prod URI names the prod database, e.g. `mongodb+srv://lms_prod_app:<password>@<cluster>/lms_prod?retryWrites=true&w=majority`. Without a database name, the driver uses `test`.
-2. **Re-seed production** from your laptop. It's safe to re-run: it resets only the `@lms.dev` demo accounts and their loans.
+2. **Re-seed production** from your laptop. It's safe to re-run: it resets the `@lms.dev` demo accounts (role and password) and their loans, and deletes payments whose UTR starts with `SEED`. Copy `MONGODB_URI` from **Render → lms-api → Environment**, so you seed exactly the database Render reads (a different database name in a local copy was the cause of audit G-04).
 
    ```bash
    cd backend && MONGODB_URI='<prod connection string>' NODE_ENV=production npm run seed -- --force

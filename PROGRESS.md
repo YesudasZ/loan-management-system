@@ -437,3 +437,7 @@ One `fix/audit-*` branch per approved group, each with regression tests and the 
   - **Problem:** `authenticate` caught every error while loading the session user, so a database outage looked like a bad token: 401, cookie cleared, every user logged out.
   - **Fix:** token verification and the user lookup are separate. A bad, expired or tampered token (or a deleted user) is still 401 with a cleared cookie; a database error is `503 DATABASE_UNAVAILABLE` and keeps the cookie. The frontend redirects to `/login` only on `UNAUTHENTICATED`, so the user sees the error with a retry.
   - **Tests:** `auth-db-outage.test.ts`, 4 cases (503 on `/auth/me` and a module route with no cookie cleared, the same cookie works once the database is back, an invalid token is still 401); 2 fail without the fix.
+- **`docs/audit-accuracy-hygiene` (S4 + S5, docs and repo hygiene):**
+  - **Docs:** the endpoint table in `docs/API.md` renders as one table again (B-01). README: test counts (491 + 98), the `admin` module, the docs list, the required checks, the replica-set requirement, the install warnings and the typecheck env (F-08, A-03, A-04, F-04). ARCHITECTURE, DECISIONS (#30, #31, #34), DEPLOYMENT, UI and SECURITY lines that contradicted the code (F-09, and the B-02/C-03/D-03 doc lines).
+  - **Hygiene:** `agentRules: false` in `next.config.ts`, so `next dev` no longer writes `frontend/AGENTS.md` (F-06); merged local branches pruned (F-07).
+  - **Manual test:** none needed beyond reading the rendered docs on GitHub (the API table, README "Local setup").

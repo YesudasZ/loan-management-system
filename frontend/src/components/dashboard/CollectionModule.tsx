@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import { toast } from 'sonner';
@@ -12,7 +11,9 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { PageSpinner } from '@/components/ui/Spinner';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { TextField } from '@/components/ui/TextField';
+import { ButtonLink } from '@/components/ui/ButtonLink';
 import { useApiQuery } from '@/hooks/useApiQuery';
+import { useSingleFlight } from '@/hooks/useSingleFlight';
 import { ApiError, apiRequest, getFailureMessages, getFieldErrors } from '@/lib/api-client';
 import { UTR_PATTERN } from '@/lib/constants';
 import { toBusinessDate } from '@/lib/dates';
@@ -35,12 +36,9 @@ export function CollectionQueue() {
         emptyTitle="No active loans"
         showRepayment
         renderAction={(loan) => (
-          <Link
-            href={`${QUEUE_PATH}/${loan.id}`}
-            className="font-medium text-indigo-700 hover:underline"
-          >
-            Record payment
-          </Link>
+          <ButtonLink href={`${QUEUE_PATH}/${loan.id}`} variant="secondary">
+            Record payment<span className="sr-only"> for {loan.applicant.fullName}</span>
+          </ButtonLink>
         )}
       />
     </>
@@ -60,10 +58,10 @@ function PaymentForm({
   const [paymentDate, setPaymentDate] = useState(today);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [formErrors, setFormErrors] = useState<string[]>([]);
-  const [isSaving, setIsSaving] = useState(false);
+  const { isRunning: isSaving, run } = useSingleFlight();
   const disbursedOn = loan.disbursedAt ? toBusinessDate(new Date(loan.disbursedAt)) : undefined;
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const amountPaise = parseRupeesToPaise(amount);
     const errors: Record<string, string> = {};
@@ -75,29 +73,28 @@ function PaymentForm({
     setFormErrors([]);
     if (Object.keys(errors).length > 0 || amountPaise === null) return;
 
-    setIsSaving(true);
-    try {
-      const result = await apiRequest<{ payment: Payment; loan: LoanDetail }>(
-        `/loans/${loan.id}/payments`,
-        { method: 'POST', body: { utr: utr.trim(), amount: amountPaise, paymentDate } },
-      );
-      setUtr('');
-      setAmount('');
-      onRecorded(result.loan);
-    } catch (error) {
-      if (!(error instanceof ApiError)) {
-        setFormErrors(['Could not record the payment.']);
-      } else if (error.code === 'VALIDATION_ERROR') {
-        setFieldErrors(getFieldErrors(error));
-      } else if (error.code === 'DUPLICATE_UTR') {
-        setFieldErrors({ utr: error.message });
-      } else {
-        const messages = getFailureMessages(error);
-        setFormErrors(messages.length > 0 ? messages : [error.message]);
+    void run(async () => {
+      try {
+        const result = await apiRequest<{ payment: Payment; loan: LoanDetail }>(
+          `/loans/${loan.id}/payments`,
+          { method: 'POST', body: { utr: utr.trim(), amount: amountPaise, paymentDate } },
+        );
+        setUtr('');
+        setAmount('');
+        onRecorded(result.loan);
+      } catch (error) {
+        if (!(error instanceof ApiError)) {
+          setFormErrors(['Could not record the payment.']);
+        } else if (error.code === 'VALIDATION_ERROR') {
+          setFieldErrors(getFieldErrors(error));
+        } else if (error.code === 'DUPLICATE_UTR') {
+          setFieldErrors({ utr: error.message });
+        } else {
+          const messages = getFailureMessages(error);
+          setFormErrors(messages.length > 0 ? messages : [error.message]);
+        }
       }
-    } finally {
-      setIsSaving(false);
-    }
+    });
   }
 
   return (
@@ -167,7 +164,7 @@ function PaymentHistory({ loanId }: { loanId: string }) {
   if (data.items.length === 0) return <EmptyState title="No payments yet" />;
 
   return (
-    <section className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+    <section className="relative overflow-x-auto rounded-lg border border-slate-200 bg-white">
       <table className="min-w-full divide-y divide-slate-200 text-sm">
         <caption className="px-4 py-3 text-left text-sm font-semibold text-slate-800">
           Payment history
@@ -226,11 +223,13 @@ export function CollectionLoanView({ loanId }: { loanId: string }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <Link href={QUEUE_PATH} className="text-sm text-indigo-700 hover:underline">
+      <ButtonLink href={QUEUE_PATH} variant="link" className="self-start">
         ← Back to active loans
-      </Link>
+      </ButtonLink>
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-semibold text-slate-900">{loan.applicant.fullName}</h1>
+        <h1 className="min-w-0 text-2xl font-semibold wrap-anywhere text-slate-900">
+          {loan.applicant.fullName}
+        </h1>
         <StatusBadge status={loan.status} />
       </div>
       <LoanTermsCard loan={loan} />

@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -11,7 +10,9 @@ import { ErrorState } from '@/components/ui/ErrorState';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { PageSpinner } from '@/components/ui/Spinner';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { ButtonLink } from '@/components/ui/ButtonLink';
 import { useApiQuery } from '@/hooks/useApiQuery';
+import { useSingleFlight } from '@/hooks/useSingleFlight';
 import { ApiError, apiRequest } from '@/lib/api-client';
 import { NOTE_MAX_LENGTH, REJECTION_REASON_MIN_LENGTH } from '@/lib/constants';
 import type { LoanDetail } from '@/types/staff';
@@ -29,12 +30,9 @@ export function SanctionQueue() {
         status="APPLIED"
         emptyTitle="No applications to review"
         renderAction={(loan) => (
-          <Link
-            href={`${QUEUE_PATH}/${loan.id}`}
-            className="font-medium text-indigo-700 hover:underline"
-          >
-            Review
-          </Link>
+          <ButtonLink href={`${QUEUE_PATH}/${loan.id}`} variant="secondary">
+            Review<span className="sr-only"> {loan.applicant.fullName}</span>
+          </ButtonLink>
         )}
       />
     </>
@@ -52,16 +50,14 @@ function RejectDialog({
 }) {
   const [reason, setReason] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { isRunning: isSubmitting, run } = useSingleFlight();
 
-  async function handleSubmit() {
+  function handleSubmit() {
     if (reason.trim().length < REJECTION_REASON_MIN_LENGTH) {
       setError(`Give a reason of at least ${REJECTION_REASON_MIN_LENGTH} characters.`);
       return;
     }
-    setIsSubmitting(true);
-    await onReject(reason.trim());
-    setIsSubmitting(false);
+    void run(() => onReject(reason.trim()));
   }
 
   return (
@@ -78,10 +74,10 @@ function RejectDialog({
           onChange={(event) => setReason(event.target.value)}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? 'reject-reason-error' : undefined}
-          className="rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-2 focus:outline-indigo-600"
+          className="rounded-md border border-slate-300 bg-white px-3 py-2 text-base focus:outline-2 focus:outline-offset-1 focus:outline-primary sm:text-sm"
         />
         {error && (
-          <p id="reject-reason-error" className="text-xs text-red-600">
+          <p id="reject-reason-error" className="text-xs text-danger">
             {error}
           </p>
         )}
@@ -100,26 +96,29 @@ function RejectDialog({
 
 function ReviewActions({ loan }: { loan: LoanDetail }) {
   const router = useRouter();
-  const [isApproving, setIsApproving] = useState(false);
+  const { isRunning: isApproving, run } = useSingleFlight();
+  // Stays true after a decision, so neither button works again while the page changes.
+  const [isDecided, setIsDecided] = useState(false);
   const [isRejectOpen, setIsRejectOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // After a decision the loan leaves this queue (and this executive's view), so go back to the
   // queue instead of reloading the page.
   function finish(message: string) {
+    setIsDecided(true);
     toast.success(message);
     router.replace(QUEUE_PATH);
   }
 
-  async function approve() {
-    setIsApproving(true);
-    try {
-      await apiRequest(`/loans/${loan.id}/approve`, { method: 'POST' });
-      finish(`Approved ${loan.applicant.fullName}'s loan → SANCTIONED`);
-    } catch (caught) {
-      setIsApproving(false);
-      setError(caught instanceof ApiError ? caught.message : 'Could not approve the loan.');
-    }
+  function approve() {
+    void run(async () => {
+      try {
+        await apiRequest(`/loans/${loan.id}/approve`, { method: 'POST' });
+        finish(`Approved ${loan.applicant.fullName}'s loan → SANCTIONED`);
+      } catch (caught) {
+        setError(caught instanceof ApiError ? caught.message : 'Could not approve the loan.');
+      }
+    });
   }
 
   async function reject(reason: string) {
@@ -136,10 +135,14 @@ function ReviewActions({ loan }: { loan: LoanDetail }) {
     <div className="flex flex-col gap-3">
       {error && <Alert>{error}</Alert>}
       <div className="flex flex-wrap gap-3">
-        <Button isLoading={isApproving} onClick={approve}>
+        <Button isLoading={isApproving || isDecided} onClick={approve}>
           Approve
         </Button>
-        <Button variant="danger" onClick={() => setIsRejectOpen(true)}>
+        <Button
+          variant="danger"
+          disabled={isApproving || isDecided}
+          onClick={() => setIsRejectOpen(true)}
+        >
           Reject…
         </Button>
       </div>
@@ -161,11 +164,13 @@ export function SanctionReview({ loanId }: { loanId: string }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <Link href={QUEUE_PATH} className="text-sm text-indigo-700 hover:underline">
+      <ButtonLink href={QUEUE_PATH} variant="link" className="self-start">
         ← Back to applications
-      </Link>
+      </ButtonLink>
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-semibold text-slate-900">{loan.applicant.fullName}</h1>
+        <h1 className="min-w-0 text-2xl font-semibold wrap-anywhere text-slate-900">
+          {loan.applicant.fullName}
+        </h1>
         <StatusBadge status={loan.status} />
       </div>
       {loan.status === 'APPLIED' ? (

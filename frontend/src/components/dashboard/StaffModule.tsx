@@ -76,13 +76,13 @@ export function StaffManagement() {
 
     return (
       <div className="flex flex-col gap-4">
-        <ul className="flex flex-col gap-3 sm:hidden">
+        <ul className="flex flex-col gap-3 lg:hidden">
           {rows.map(({ user, isSelf }) => (
             <li key={user.id} className="rounded-lg border border-slate-200 bg-white p-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="font-medium text-slate-900">{user.name}</p>
-                  <p className="truncate text-xs text-slate-500">{user.email}</p>
+                  <p className="font-medium wrap-anywhere text-slate-900">{user.name}</p>
+                  <p className="text-xs wrap-anywhere text-slate-500">{user.email}</p>
                 </div>
                 <RoleBadge role={user.role} />
               </div>
@@ -93,7 +93,7 @@ export function StaffManagement() {
             </li>
           ))}
         </ul>
-        <div className="hidden overflow-x-auto rounded-lg border border-slate-200 bg-white sm:block">
+        <div className="relative hidden overflow-x-auto rounded-lg border border-slate-200 bg-white lg:block">
           <table className="min-w-full divide-y divide-slate-200 text-sm">
             <thead className="bg-slate-50 text-left text-xs font-semibold uppercase text-slate-500">
               <tr>
@@ -115,8 +115,8 @@ export function StaffManagement() {
               {rows.map(({ user, isSelf }) => (
                 <tr key={user.id}>
                   <td className="px-4 py-3">
-                    <p className="font-medium text-slate-900">{user.name}</p>
-                    <p className="text-xs text-slate-500">{user.email}</p>
+                    <p className="font-medium wrap-anywhere text-slate-900">{user.name}</p>
+                    <p className="text-xs wrap-anywhere text-slate-500">{user.email}</p>
                   </td>
                   <td className="px-4 py-3">
                     <RoleBadge role={user.role} />

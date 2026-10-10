@@ -1,4 +1,7 @@
-import Link from 'next/link';
+import type { Metadata } from 'next';
+import { ButtonLink } from '@/components/ui/ButtonLink';
+
+export const metadata: Metadata = { title: 'Page not found' };
 
 export default function NotFound() {
   return (
@@ -11,12 +14,7 @@ export default function NotFound() {
       <p className="max-w-md text-sm text-slate-600">
         The page you were looking for doesn&apos;t exist or has moved.
       </p>
-      <Link
-        href="/"
-        className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
-      >
-        Go to my home page
-      </Link>
+      <ButtonLink href="/">Go to my home page</ButtonLink>
     </main>
   );
 }

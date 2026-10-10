@@ -1,9 +1,9 @@
 'use client';
 
-import Link from 'next/link';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { PageSpinner } from '@/components/ui/Spinner';
+import { ButtonLink } from '@/components/ui/ButtonLink';
 import { useApiQuery } from '@/hooks/useApiQuery';
 import { formatDate, formatInr } from '@/lib/format';
 import { MY_LOANS_PATH } from '@/lib/route-access';
@@ -18,12 +18,9 @@ export function MyLoanDetail({ loanId }: { loanId: string }) {
 
   return (
     <>
-      <Link
-        href={MY_LOANS_PATH}
-        className="mb-4 inline-block text-sm font-medium text-indigo-700 hover:underline"
-      >
+      <ButtonLink href={MY_LOANS_PATH} variant="link" className="mb-4">
         ← All my loans
-      </Link>
+      </ButtonLink>
       {error && <ErrorState message={error.message} onRetry={reload} />}
       {!error && (isLoading || !data) && <PageSpinner label="Loading the loan" />}
       {!error && data && (

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { ButtonLink } from '@/components/ui/ButtonLink';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { Pagination } from '@/components/ui/Pagination';
@@ -28,12 +29,9 @@ function OwedAmount({ loan, paise }: { loan: BorrowerLoan; paise: number }) {
 
 function ViewLink({ loan }: { loan: BorrowerLoan }) {
   return (
-    <Link
-      href={`${MY_LOANS_PATH}/${loan.id}`}
-      className="text-sm font-medium text-indigo-700 hover:underline"
-    >
+    <ButtonLink href={`${MY_LOANS_PATH}/${loan.id}`} variant="secondary">
       View<span className="sr-only"> loan of {formatInr(loan.principal)}</span>
-    </Link>
+    </ButtonLink>
   );
 }
 
@@ -51,11 +49,7 @@ export function MyLoansList() {
       <EmptyState
         title="No loans yet"
         description="Your loan applications will appear here."
-        action={
-          <Link href="/apply" className="text-sm font-medium text-indigo-700 hover:underline">
-            Start an application
-          </Link>
-        }
+        action={<ButtonLink href="/apply">Start an application</ButtonLink>}
       />
     );
   }
@@ -98,7 +92,7 @@ export function MyLoansList() {
           </li>
         ))}
       </ul>
-      <div className="hidden overflow-x-auto rounded-lg border border-slate-200 bg-white sm:block">
+      <div className="relative hidden overflow-x-auto rounded-lg border border-slate-200 bg-white sm:block">
         <table className="min-w-full divide-y divide-slate-200 text-sm">
           <thead className="bg-slate-50 text-left text-xs font-semibold uppercase text-slate-500">
             <tr>
@@ -129,7 +123,7 @@ export function MyLoansList() {
                   {/* The date opens the loan, so the table needs no extra column to fit. */}
                   <Link
                     href={`${MY_LOANS_PATH}/${loan.id}`}
-                    className="font-medium text-indigo-700 hover:underline"
+                    className="font-medium text-primary hover:underline"
                   >
                     {formatDate(loan.createdAt)}
                     <span className="sr-only">: view this loan</span>

@@ -9,7 +9,10 @@ export function ServerWakingBanner() {
   if (!isWaking) return null;
 
   return (
-    <div role="status" className="bg-amber-100 px-4 py-2 text-center text-sm text-amber-900">
+    <div
+      role="status"
+      className="border-b border-warning bg-warning-soft px-4 py-2 text-center text-sm text-warning-strong"
+    >
       Waking up the server. This can take up to a minute on the free hosting plan…
     </div>
   );

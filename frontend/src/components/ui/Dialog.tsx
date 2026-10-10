@@ -11,7 +11,8 @@ interface DialogProps {
 
 /**
  * A modal built on the native <dialog> element: the browser traps focus, closes on Escape and
- * returns focus to the button that opened it.
+ * returns focus to the button that opened it. It never grows taller than the screen (minus a
+ * margin) and scrolls inside, so it fits a 360px phone even with the keyboard open.
  */
 export function Dialog({ isOpen, title, onClose, children }: DialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -28,7 +29,7 @@ export function Dialog({ isOpen, title, onClose, children }: DialogProps) {
       ref={dialogRef}
       onClose={onClose}
       aria-labelledby="dialog-title"
-      className="m-auto w-[min(32rem,calc(100%-2rem))] rounded-lg border border-slate-200 p-0 shadow-xl backdrop:bg-slate-900/40"
+      className="m-auto max-h-[calc(100dvh-2rem)] w-[min(32rem,calc(100%-2rem))] overflow-y-auto rounded-lg border border-slate-200 p-0 shadow-xl backdrop:bg-slate-900/40"
     >
       {isOpen && (
         <div className="flex flex-col gap-4 p-6">

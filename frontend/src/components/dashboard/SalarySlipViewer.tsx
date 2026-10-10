@@ -1,3 +1,4 @@
+import { buttonClassName } from '@/components/ui/Button';
 import type { SalarySlip } from '@/types/loan';
 
 /**
@@ -13,12 +14,7 @@ export function SalarySlipViewer({ loanId, slip }: { loanId: string; slip: Salar
     <section className="rounded-lg border border-slate-200 bg-white p-4">
       <div className="mb-3 flex items-center justify-between gap-3">
         <h2 className="text-sm font-semibold text-slate-800">Salary slip</h2>
-        <a
-          href={url}
-          target="_blank"
-          rel="noopener"
-          className="text-sm font-medium text-indigo-700 hover:underline"
-        >
+        <a href={url} target="_blank" rel="noopener" className={buttonClassName('link')}>
           Open in a new tab
         </a>
       </div>

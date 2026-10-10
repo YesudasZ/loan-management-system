@@ -1,6 +1,6 @@
-import Link from 'next/link';
 import { Alert } from '@/components/ui/Alert';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { ButtonLink } from '@/components/ui/ButtonLink';
 import type { Role } from '@/lib/constants';
 import { formatDateTime, formatInr } from '@/lib/format';
 import { isRepaymentDue, type BorrowerLoan, type LoanStatus } from '@/types/loan';
@@ -42,7 +42,7 @@ function Amount({
   return (
     <div className="rounded-md border border-slate-200 bg-white p-3">
       <dt className="text-xs text-slate-500">{label}</dt>
-      <dd className={`mt-1 font-semibold ${isHighlighted ? 'text-indigo-700' : 'text-slate-900'}`}>
+      <dd className={`mt-1 font-semibold ${isHighlighted ? 'text-primary' : 'text-slate-900'}`}>
         {formatInr(paise)}
       </dd>
     </div>
@@ -105,18 +105,10 @@ export function LoanStatusView({ loan, showNextSteps = true }: LoanStatusViewPro
 
       {canApplyAgain && (
         <div className="flex flex-wrap gap-3">
-          <Link
-            href="/apply/loan"
-            className="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
-          >
-            Apply again
-          </Link>
-          <Link
-            href="/apply/profile"
-            className="inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50"
-          >
+          <ButtonLink href="/apply/loan">Apply again</ButtonLink>
+          <ButtonLink href="/apply/profile" variant="secondary">
             Update my details
-          </Link>
+          </ButtonLink>
         </div>
       )}
     </div>

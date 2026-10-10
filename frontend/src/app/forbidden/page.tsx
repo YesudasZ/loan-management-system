@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import { ButtonLink } from '@/components/ui/ButtonLink';
 import { LogoutButton } from '@/components/auth/LogoutButton';
 
 export const metadata: Metadata = { title: 'Access denied' };
@@ -15,13 +15,8 @@ export default function ForbiddenPage() {
         Your role can&apos;t open this part of the system. If you think this is wrong, ask an
         administrator.
       </p>
-      <div className="flex gap-3">
-        <Link
-          href="/"
-          className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
-        >
-          Go to my home page
-        </Link>
+      <div className="flex flex-wrap justify-center gap-3">
+        <ButtonLink href="/">Go to my home page</ButtonLink>
         <LogoutButton />
       </div>
     </main>

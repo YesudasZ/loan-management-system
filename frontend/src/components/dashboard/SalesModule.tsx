@@ -13,8 +13,8 @@ import type { Lead, LeadStage, Paginated } from '@/types/staff';
 const STAGE_LABELS: Record<LeadStage, { label: string; className: string }> = {
   PROFILE_PENDING: { label: 'Details pending', className: 'bg-slate-100 text-slate-700' },
   BRE_FAILED: { label: 'Not eligible', className: 'bg-red-100 text-red-800' },
-  SALARY_SLIP_PENDING: { label: 'Slip pending', className: 'bg-amber-100 text-amber-800' },
-  READY_TO_APPLY: { label: 'Ready to apply', className: 'bg-green-100 text-green-800' },
+  SALARY_SLIP_PENDING: { label: 'Slip pending', className: 'bg-amber-100 text-amber-900' },
+  READY_TO_APPLY: { label: 'Ready to apply', className: 'bg-emerald-100 text-emerald-800' },
 };
 
 function StageBadge({ stage }: { stage: LeadStage }) {
@@ -44,7 +44,7 @@ export function SalesLeads() {
       {data && !isLoading && data.items.length === 0 && <EmptyState title="No leads yet" />}
       {data && !isLoading && data.items.length > 0 && (
         <div className="flex flex-col gap-4">
-          <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+          <div className="relative overflow-x-auto rounded-lg border border-slate-200 bg-white">
             <table className="min-w-full divide-y divide-slate-200 text-sm">
               <thead className="bg-slate-50 text-left text-xs font-semibold uppercase text-slate-500">
                 <tr>
@@ -66,8 +66,8 @@ export function SalesLeads() {
                 {data.items.map((lead) => (
                   <tr key={lead.id}>
                     <td className="px-4 py-3">
-                      <p className="font-medium text-slate-900">{lead.name}</p>
-                      <p className="text-xs text-slate-500">{lead.email}</p>
+                      <p className="font-medium wrap-anywhere text-slate-900">{lead.name}</p>
+                      <p className="text-xs wrap-anywhere text-slate-500">{lead.email}</p>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">{formatDate(lead.registeredAt)}</td>
                     <td className="px-4 py-3">

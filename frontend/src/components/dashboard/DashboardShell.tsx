@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useState, type ReactNode } from 'react';
 import { AuthenticatedPage } from '@/components/AuthenticatedPage';
 import { LogoutButton } from '@/components/auth/LogoutButton';
+import { Button } from '@/components/ui/Button';
 import type { Role } from '@/lib/constants';
 import { getAllowedModules } from '@/lib/route-access';
 
@@ -37,7 +38,7 @@ function Sidebar({ role, onNavigate }: { role: Role; onNavigate: () => void }) {
             href={link.path}
             onClick={onNavigate}
             aria-current={active ? 'page' : undefined}
-            className={`rounded-md px-3 py-2 text-sm font-medium ${active ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700 hover:bg-slate-100'}`}
+            className={`flex min-h-11 items-center rounded-md px-3 text-sm font-medium md:min-h-9 ${active ? 'bg-primary-soft text-primary' : 'text-slate-700 hover:bg-slate-100'}`}
           >
             {link.label}
           </Link>
@@ -57,19 +58,19 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         <div className="flex min-h-full flex-1 flex-col">
           <header className="flex items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-3">
             <div className="flex items-center gap-3">
-              <button
-                type="button"
-                className="rounded-md border border-slate-300 px-2 py-1 text-sm md:hidden"
+              <Button
+                variant="secondary"
+                className="md:hidden"
                 aria-expanded={isMenuOpen}
                 aria-controls="dashboard-sidebar"
                 onClick={() => setIsMenuOpen((open) => !open)}
               >
                 Menu
-              </button>
-              <p className="font-semibold text-indigo-700">LMS Operations</p>
+              </Button>
+              <p className="font-semibold whitespace-nowrap text-primary">LMS Operations</p>
             </div>
             <div className="flex items-center gap-3">
-              <span className="hidden text-sm text-slate-600 sm:inline">
+              <span className="hidden max-w-xs truncate text-sm text-slate-600 sm:inline-block">
                 {user.name} · <span className="font-medium">{user.role}</span>
               </span>
               <LogoutButton />

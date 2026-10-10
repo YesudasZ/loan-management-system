@@ -8,6 +8,13 @@ import { useApiQuery } from '@/hooks/useApiQuery';
 import { getWizardRedirect, WIZARD_STEPS } from '@/lib/wizard';
 import type { BorrowerProgress, WizardStep } from '@/types/loan';
 
+// Completed steps use the accent (emerald), the current one the primary blue.
+const STEP_BAR_CLASSES = {
+  done: 'bg-accent',
+  current: 'bg-primary',
+  todo: 'bg-slate-200',
+} as const;
+
 function WizardSteps({ current }: { current: WizardStep }) {
   const currentIndex = WIZARD_STEPS.findIndex((entry) => entry.step === current);
   return (
@@ -20,11 +27,9 @@ function WizardSteps({ current }: { current: WizardStep }) {
             aria-current={state === 'current' ? 'step' : undefined}
             className="flex flex-col gap-1"
           >
+            <span className={`h-1.5 rounded-full ${STEP_BAR_CLASSES[state]}`} />
             <span
-              className={`h-1.5 rounded-full ${state === 'todo' ? 'bg-slate-200' : 'bg-indigo-600'}`}
-            />
-            <span
-              className={`text-xs ${state === 'current' ? 'font-semibold text-indigo-700' : 'text-slate-500'}`}
+              className={`text-xs ${state === 'current' ? 'font-semibold text-primary' : 'text-slate-500'}`}
             >
               {index + 1}. {entry.label}
             </span>

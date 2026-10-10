@@ -72,7 +72,7 @@ export function SalarySlipForm({ currentSlip, onUploaded }: SalarySlipFormProps)
   return (
     <div className="flex flex-col gap-6">
       {currentSlip && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-green-200 bg-green-50 p-4 text-sm text-green-900">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-accent-border bg-accent-soft p-4 text-sm text-accent-strong">
           <p>
             Uploaded: {TYPE_LABELS[currentSlip.contentType] ?? 'File'} ·{' '}
             {formatFileSize(currentSlip.sizeBytes)} · {formatDate(currentSlip.uploadedAt)}
@@ -81,7 +81,7 @@ export function SalarySlipForm({ currentSlip, onUploaded }: SalarySlipFormProps)
             href="/api/v1/borrower/salary-slip"
             target="_blank"
             rel="noopener"
-            className="font-medium text-indigo-700 hover:underline"
+            className="font-medium text-primary hover:underline"
           >
             View slip
           </a>
@@ -99,7 +99,7 @@ export function SalarySlipForm({ currentSlip, onUploaded }: SalarySlipFormProps)
             accept={ACCEPT}
             onChange={handleFileChange}
             aria-describedby="salary-slip-hint"
-            className="rounded-md border border-slate-300 bg-white p-2 text-sm file:mr-3 file:rounded file:border-0 file:bg-indigo-50 file:px-3 file:py-1.5 file:text-indigo-700"
+            className="rounded-md border border-slate-300 bg-white p-2 text-sm file:mr-3 file:rounded file:border-0 file:bg-primary-soft file:px-3 file:py-1.5 file:text-primary"
           />
           <p id="salary-slip-hint" className="text-xs text-slate-500">
             PDF, JPG or PNG, up to 5 MB. Demo system: please upload a sample, not a real payslip.
@@ -113,7 +113,7 @@ export function SalarySlipForm({ currentSlip, onUploaded }: SalarySlipFormProps)
           {currentSlip && (
             <Link
               href="/apply/loan"
-              className="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+              className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-hover"
             >
               Continue to loan amount
             </Link>

@@ -22,9 +22,9 @@ function BorrowerNav() {
           key={link.href}
           href={link.href}
           aria-current={link.isCurrent ? 'page' : undefined}
-          className={`border-b-2 px-3 py-2 text-sm font-medium ${
+          className={`flex min-h-11 items-center border-b-2 px-3 text-sm font-medium ${
             link.isCurrent
-              ? 'border-indigo-600 text-indigo-700'
+              ? 'border-primary text-primary'
               : 'border-transparent text-slate-600 hover:text-slate-900'
           }`}
         >
@@ -43,9 +43,11 @@ export function BorrowerShell({ children }: { children: ReactNode }) {
         <div className="flex min-h-full flex-1 flex-col">
           <header className="border-b border-slate-200 bg-white">
             <div className="mx-auto flex max-w-3xl items-center justify-between gap-4 px-4 py-3">
-              <p className="font-semibold text-indigo-700">LMS · Personal loan</p>
+              <p className="font-semibold whitespace-nowrap text-primary">LMS · Personal loan</p>
               <div className="flex items-center gap-3">
-                <span className="hidden text-sm text-slate-600 sm:inline">{user.name}</span>
+                <span className="hidden max-w-xs truncate text-sm text-slate-600 sm:inline-block">
+                  {user.name}
+                </span>
                 <LogoutButton />
               </div>
             </div>

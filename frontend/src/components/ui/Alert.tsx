@@ -3,8 +3,8 @@ import type { ReactNode } from 'react';
 type AlertTone = 'error' | 'info';
 
 const TONE_CLASSES: Record<AlertTone, string> = {
-  error: 'border-red-200 bg-red-50 text-red-800',
-  info: 'border-indigo-200 bg-indigo-50 text-indigo-900',
+  error: 'border-danger-border bg-danger-soft text-danger-strong',
+  info: 'border-primary-border bg-primary-soft text-primary-dark',
 };
 
 /** An inline message. Errors use role="alert" so screen readers announce them immediately. */

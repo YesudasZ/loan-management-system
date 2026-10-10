@@ -25,7 +25,7 @@ export function Spinner({ label = 'Loading', size = 'md' }: SpinnerProps) {
 
 export function PageSpinner({ label = 'Loading' }: { label?: string }) {
   return (
-    <div className="flex flex-1 items-center justify-center p-12 text-indigo-600">
+    <div className="flex flex-1 items-center justify-center p-12 text-primary">
       <Spinner label={label} />
     </div>
   );

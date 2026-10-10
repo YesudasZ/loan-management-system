@@ -2,10 +2,11 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { toast } from 'sonner';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
+import { useSingleFlight } from '@/hooks/useSingleFlight';
 import { ApiError, apiRequest } from '@/lib/api-client';
 import { getBreFailures, type BreFailure } from '@/lib/bre';
 import {
@@ -36,8 +37,15 @@ interface SliderProps {
   onChange: (value: number) => void;
 }
 
-/** A native range input: keyboard support (arrows, Home/End, PageUp/Down) comes for free. */
+/** The part of the track left of the thumb is filled (see `.slider` in globals.css). */
+type SliderStyle = CSSProperties & { '--slider-fill': string };
+
+/**
+ * A native range input: keyboard support (arrows, Home/End, PageUp/Down) comes for free. The
+ * `.slider` styles give it a large thumb and a 44px-tall touch area.
+ */
 function Slider({ id, label, value, min, max, step, displayValue, onChange }: SliderProps) {
+  const style: SliderStyle = { '--slider-fill': `${((value - min) / (max - min)) * 100}%` };
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-baseline justify-between">
@@ -55,7 +63,8 @@ function Slider({ id, label, value, min, max, step, displayValue, onChange }: Sl
         value={value}
         aria-valuetext={displayValue}
         onChange={(event) => onChange(Number(event.target.value))}
-        className="w-full accent-indigo-600"
+        className="slider"
+        style={style}
       />
     </div>
   );
@@ -75,9 +84,7 @@ function SummaryRow({
       className={`flex justify-between gap-4 py-2 ${isTotal ? 'border-t border-slate-200 pt-3' : ''}`}
     >
       <dt className={isTotal ? 'font-semibold text-slate-900' : 'text-slate-600'}>{label}</dt>
-      <dd
-        className={isTotal ? 'text-lg font-semibold text-indigo-700' : 'font-medium text-slate-900'}
-      >
+      <dd className={isTotal ? 'text-lg font-semibold text-primary' : 'font-medium text-slate-900'}>
         {value}
       </dd>
     </div>
@@ -91,7 +98,9 @@ export function LoanCalculator() {
   const [announcement, setAnnouncement] = useState('');
   const [breFailures, setBreFailures] = useState<BreFailure[]>([]);
   const [formError, setFormError] = useState<string | null>(null);
-  const [isApplying, setIsApplying] = useState(false);
+  const { isRunning: isApplying, run } = useSingleFlight();
+  // Stays true after success, so the button can't be pressed again while the page changes.
+  const [hasApplied, setHasApplied] = useState(false);
 
   const principal = amountRupees * PAISE_PER_RUPEE;
   const quote = calculateLoanQuote({
@@ -110,23 +119,24 @@ export function LoanCalculator() {
     return () => clearTimeout(timer);
   }, [quote.totalRepayment, principal, tenureDays]);
 
-  async function handleApply() {
-    setFormError(null);
-    setBreFailures([]);
-    setIsApplying(true);
-    try {
-      // Only the choice is sent; the server calculates interest and totals itself.
-      await apiRequest('/borrower/loans', { method: 'POST', body: { principal, tenureDays } });
-      toast.success('Application submitted.');
-      router.push('/apply/status');
-    } catch (error) {
-      setIsApplying(false);
-      if (error instanceof ApiError && error.code === 'BRE_FAILED') {
-        setBreFailures(getBreFailures(error));
-      } else {
-        setFormError(error instanceof ApiError ? error.message : 'Something went wrong.');
+  function handleApply() {
+    void run(async () => {
+      setFormError(null);
+      setBreFailures([]);
+      try {
+        // Only the choice is sent; the server calculates interest and totals itself.
+        await apiRequest('/borrower/loans', { method: 'POST', body: { principal, tenureDays } });
+        setHasApplied(true);
+        toast.success('Application submitted.');
+        router.push('/apply/status');
+      } catch (error) {
+        if (error instanceof ApiError && error.code === 'BRE_FAILED') {
+          setBreFailures(getBreFailures(error));
+        } else {
+          setFormError(error instanceof ApiError ? error.message : 'Something went wrong.');
+        }
       }
-    }
+    });
   }
 
   return (
@@ -156,7 +166,7 @@ export function LoanCalculator() {
 
       <section
         aria-labelledby="calculation-heading"
-        className="rounded-lg border border-indigo-100 bg-indigo-50/60 p-5"
+        className="rounded-lg border border-primary-border bg-primary-soft p-5"
       >
         <h2 id="calculation-heading" className="mb-2 text-sm font-semibold text-slate-800">
           Your repayment
@@ -183,15 +193,12 @@ export function LoanCalculator() {
       {breFailures.length > 0 && (
         <>
           <BreFailureList failures={breFailures} />
-          <Link
-            href="/apply/profile"
-            className="text-sm font-medium text-indigo-700 hover:underline"
-          >
+          <Link href="/apply/profile" className="text-sm font-medium text-primary hover:underline">
             Update your personal details
           </Link>
         </>
       )}
-      <Button onClick={handleApply} isLoading={isApplying}>
+      <Button onClick={handleApply} isLoading={isApplying || hasApplied}>
         Apply for {formatInr(principal)}
       </Button>
     </div>

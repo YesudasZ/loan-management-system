@@ -43,7 +43,7 @@ function ChangeRoleForm({ user, onCancel, onChanged }: ChangeRoleFormProps) {
 
   return (
     <>
-      <p className="flex flex-wrap items-center gap-2 text-sm text-slate-700">
+      <p className="flex flex-wrap items-center gap-2 text-sm wrap-anywhere text-slate-700">
         {user.email} is currently <RoleBadge role={user.role} />
       </p>
       <SelectField

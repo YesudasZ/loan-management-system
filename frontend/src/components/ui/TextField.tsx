@@ -30,7 +30,7 @@ export function TextField({
         id={inputId}
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy}
-        className={`rounded-md border bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:outline-2 focus:outline-offset-1 focus:outline-indigo-600 ${error ? 'border-red-500' : 'border-slate-300'} ${className}`}
+        className={`min-h-11 rounded-md border bg-white px-3 py-2 text-base text-slate-900 shadow-sm sm:min-h-9 sm:text-sm focus:outline-2 focus:outline-offset-1 focus:outline-primary ${error ? 'border-danger' : 'border-slate-300'} ${className}`}
         {...inputProps}
       />
       {hint && (
@@ -39,7 +39,7 @@ export function TextField({
         </p>
       )}
       {error && (
-        <p id={errorId} className="text-xs text-red-600">
+        <p id={errorId} className="text-xs text-danger">
           {error}
         </p>
       )}

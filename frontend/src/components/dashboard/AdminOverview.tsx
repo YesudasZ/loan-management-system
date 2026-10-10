@@ -33,7 +33,7 @@ function CountCard({ label, count, href }: { label: string; count: number; href?
   );
   const className = 'block rounded-lg border border-slate-200 bg-white p-4';
   return href ? (
-    <Link href={href} className={`${className} hover:border-indigo-300 hover:bg-indigo-50/40`}>
+    <Link href={href} className={`${className} hover:border-primary hover:bg-primary-soft`}>
       {content}
     </Link>
   ) : (

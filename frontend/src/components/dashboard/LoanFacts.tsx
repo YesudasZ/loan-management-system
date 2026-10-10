@@ -1,5 +1,6 @@
 import { EMPLOYMENT_MODE_LABELS } from '@/lib/constants';
 import { formatDate, formatDateTime, formatInr } from '@/lib/format';
+import { ELIGIBILITY_RULE_LABELS } from '@/lib/loan-terms';
 import type { LoanDetail } from '@/types/staff';
 
 function Fact({
@@ -14,7 +15,9 @@ function Fact({
   return (
     <div>
       <dt className="text-xs text-slate-500">{label}</dt>
-      <dd className={`mt-0.5 ${isStrong ? 'font-semibold text-indigo-700' : 'text-slate-900'}`}>
+      <dd
+        className={`mt-0.5 wrap-anywhere ${isStrong ? 'font-semibold text-primary' : 'text-slate-900'}`}
+      >
         {value}
       </dd>
     </div>
@@ -46,19 +49,14 @@ export function ApplicantCard({ loan }: { loan: LoanDetail }) {
   );
 }
 
-const BRE_RULE_LABELS = [
-  'Age between 23 and 50',
-  'Monthly salary of at least ₹25,000',
-  'Valid PAN format',
-  'Salaried or self-employed',
-];
+const BRE_RULE_LABELS = Object.values(ELIGIBILITY_RULE_LABELS);
 
 export function BreResultCard({ loan }: { loan: LoanDetail }) {
   const { breResult } = loan.applicant;
   return (
     <Card title="Eligibility check (BRE)">
       {breResult.isEligible ? (
-        <ul className="space-y-1 text-sm text-green-700">
+        <ul className="space-y-1 text-sm text-accent-strong">
           {BRE_RULE_LABELS.map((label) => (
             <li key={label}>
               <span aria-hidden="true">✓ </span>
@@ -67,7 +65,7 @@ export function BreResultCard({ loan }: { loan: LoanDetail }) {
           ))}
         </ul>
       ) : (
-        <ul className="space-y-1 text-sm text-red-700">
+        <ul className="space-y-1 text-sm text-danger-strong">
           {breResult.failures.map((failure) => (
             <li key={failure.rule}>✗ {failure.message}</li>
           ))}

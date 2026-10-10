@@ -1,17 +1,96 @@
 @import 'tailwindcss';
 
-:root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
-}
+/*
+ * Theme tokens. Components use these names (bg-primary, text-danger-strong, …) instead of raw
+ * palette colours, so the theme lives in one place. Each role has a main colour, a "-strong"
+ * shade for text, a "-soft" background and a "-border". WCAG contrast ratios are listed in
+ * docs/DECISIONS.md.
+ */
+@theme {
+  --color-primary: #1d4ed8; /* blue-700: buttons, links, focus rings */
+  --color-primary-hover: #1e40af; /* blue-800 */
+  --color-primary-dark: #172554; /* blue-950: brand panel, text on primary-soft */
+  --color-primary-soft: #eff6ff; /* blue-50 */
+  --color-primary-border: #bfdbfe; /* blue-200; also secondary text on primary-dark */
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-accent: #059669; /* emerald-600: icons and large accents (not small text on white) */
+  --color-accent-strong: #047857; /* emerald-700: success text */
+  --color-accent-soft: #ecfdf5; /* emerald-50 */
+  --color-accent-border: #a7f3d0; /* emerald-200 */
+
+  --color-warning: #f59e0b; /* amber-500: borders and icons only */
+  --color-warning-strong: #78350f; /* amber-900: warning text */
+  --color-warning-soft: #fef3c7; /* amber-100 */
+
+  --color-danger: #dc2626; /* red-600: errors, destructive buttons */
+  --color-danger-strong: #991b1b; /* red-800: error text on danger-soft */
+  --color-danger-soft: #fef2f2; /* red-50 */
+  --color-danger-border: #fecaca; /* red-200 */
+
+  --color-background: #f8fafc; /* slate-50 */
+  --color-foreground: #0f172a; /* slate-900 */
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--color-background);
+  color: var(--color-foreground);
   font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer components {
+  /*
+   * Range sliders: a 28px thumb on a 44px-tall touch area (WCAG 2.5.8 target size). The filled
+   * part of the track comes from --slider-fill, set by the component as a percentage.
+   */
+  .slider {
+    --slider-fill: 50%;
+    appearance: none;
+    width: 100%;
+    height: 2.75rem;
+    background: transparent;
+    cursor: pointer;
+    touch-action: pan-y;
+  }
+  .slider:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 4px;
+    border-radius: 0.5rem;
+  }
+  .slider::-webkit-slider-runnable-track {
+    height: 0.5rem;
+    border-radius: 9999px;
+    background: linear-gradient(
+      to right,
+      var(--color-primary) var(--slider-fill),
+      var(--color-primary-border) var(--slider-fill)
+    );
+  }
+  .slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 1.75rem;
+    height: 1.75rem;
+    margin-top: -0.625rem; /* centres the 28px thumb on the 8px track */
+    border: 3px solid #fff;
+    border-radius: 9999px;
+    background: var(--color-primary);
+    box-shadow: 0 1px 4px rgb(15 23 42 / 0.35);
+  }
+  .slider::-moz-range-track {
+    height: 0.5rem;
+    border-radius: 9999px;
+    background: var(--color-primary-border);
+  }
+  .slider::-moz-range-progress {
+    height: 0.5rem;
+    border-radius: 9999px;
+    background: var(--color-primary);
+  }
+  .slider::-moz-range-thumb {
+    width: 1.375rem;
+    height: 1.375rem;
+    border: 3px solid #fff;
+    border-radius: 9999px;
+    background: var(--color-primary);
+    box-shadow: 0 1px 4px rgb(15 23 42 / 0.35);
+  }
 }

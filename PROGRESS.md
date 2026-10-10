@@ -2,18 +2,19 @@
 
 One entry per merged branch, newest last. Each entry says what changed and how to test it by hand.
 
-| #   | Branch                         | Status                   |
-| --- | ------------------------------ | ------------------------ |
-| 1   | `chore/repo-setup`             | merged                   |
-| 2   | `feat/backend-foundation-auth` | merged                   |
-| 3   | `feat/frontend-foundation`     | merged                   |
-| 4   | `feat/borrower-journey`        | merged                   |
-| 5   | `feat/operations-modules`      | merged (E2E)             |
-| 6   | `feat/sales-admin-overview`    | merged                   |
-| 7   | `test/rbac-security-hardening` | merged                   |
-| 8   | `docs/readme-polish-release`   | merged (tagged `v1.0.0`) |
-| 9   | `feat/seed-test-data`          | merged                   |
-| 10  | `feat/admin-staff-management`  | in review                |
+| #   | Branch                               | Status                   |
+| --- | ------------------------------------ | ------------------------ |
+| 1   | `chore/repo-setup`                   | merged                   |
+| 2   | `feat/backend-foundation-auth`       | merged                   |
+| 3   | `feat/frontend-foundation`           | merged                   |
+| 4   | `feat/borrower-journey`              | merged                   |
+| 5   | `feat/operations-modules`            | merged (E2E)             |
+| 6   | `feat/sales-admin-overview`          | merged                   |
+| 7   | `test/rbac-security-hardening`       | merged                   |
+| 8   | `docs/readme-polish-release`         | merged (tagged `v1.0.0`) |
+| 9   | `feat/seed-test-data`                | merged                   |
+| 10  | `feat/admin-staff-management`        | merged                   |
+| 11  | `style/theme-login-responsive-audit` | in review                |
 
 ---
 
@@ -361,3 +362,50 @@ Goal: ADMIN can manage who has which role, from the dashboard.
 6. Your own row has no Change role button.
 7. As `sanction@lms.dev`, open `/dashboard/staff` → the 403 page.
 8. Clean up afterwards: change the QA account back to **Borrower** (it isn't removed by `--remove-test-data`).
+
+## 11. `style/theme-login-responsive-audit`
+
+UI only: no business logic, API, RBAC or seed changes. Still one login page for every role, and no new public pages.
+
+**What changed**
+
+- **Split-screen login and sign-up:**
+  - From 1024px: a navy brand panel with the loan terms (₹50,000–₹5,00,000, 30–365 days, 12% p.a. simple interest), who can apply, and how it works in 4 steps. The form is on the right.
+  - Phones and tablets: the form first, the facts below it.
+  - The login says "Staff and borrowers use the same login."
+  - Every value comes from `lib/loan-terms.ts`, which is built from the constants and pinned by a test. It replaces four hand-written copies elsewhere.
+- **Theme:**
+  - Tailwind 4 tokens (primary blue-700, primary-dark blue-950, accent emerald-600, warning, danger, background, foreground) used through the UI kit.
+  - Status badges: APPLIED blue, SANCTIONED indigo, DISBURSED amber, CLOSED emerald, REJECTED red, always with their text label.
+  - Every text, button and badge pair meets WCAG AA (table in `docs/UI.md`).
+- **Responsive audit** at 360/390/768/1024/1440px, covering every page, dialog and the backend-down state. Main fixes (checklist in `docs/UI.md`):
+  - long names and emails no longer widen the page (the overview was 450px wide at 360px)
+  - Collection at 768px no longer overflows
+  - 44px tap targets on phones
+  - 16px inputs, so iOS doesn't zoom
+  - larger slider thumbs on a 44px track
+  - the header no longer wraps
+  - dashboard lists show as cards until 1024px
+- **Crash-proofing:**
+  - error boundaries for the root, `/apply`, `/dashboard`, plus `global-error`, each with "Try again" and a home link
+  - with the backend stopped, pages show the waking banner, then "server is starting up" with Try again
+  - double-click protection (`useSingleFlight`) on Apply, Approve, Reject, Mark disbursed and Record payment: three clicks in one frame sent one request
+- **Docs:** README future work (separate staff portal/domain, SSO, 2FA for staff, IP allowlisting), `docs/UI.md`, DECISIONS 77–83, and before/after screenshots in `docs/screenshots/`.
+- **Tests:** frontend **82** (was 78): the loan-terms text and the single-flight guard. Backend 477, unchanged.
+
+**Manual test steps**
+
+Live site, after the merge (Vercel deploys the frontend; nothing changes on Render). On desktop:
+
+1. Open the site logged out → `/login` shows the navy panel on the left (terms, who can apply, how it works) and the form on the right, with "Staff and borrowers use the same login." `/` still redirects to `/login`.
+2. Log in as `admin@lms.dev` → the Overview badges are coloured (APPLIED blue, SANCTIONED indigo, DISBURSED amber, CLOSED emerald, REJECTED red). Open each module.
+3. As `sanction@lms.dev`, open an application and double-click **Approve** quickly → one toast, back to the queue, approved once.
+
+On your phone:
+
+4. Open the site → the form first, the loan facts below; no sideways scrolling.
+5. Log in as `borrower@lms.dev` (or a lead such as `lead.ready@lms.dev`):
+   - Tapping a field doesn't zoom the page.
+   - On the loan step the slider thumbs are easy to drag and the totals update.
+6. Log in as `admin@lms.dev` → **Menu** opens the drawer with large links; the lists are cards; open Collection → a loan → the payment form fits. Try Sanction → Reject… → the dialog fits with the keyboard open.
+7. Open `/apply` as staff or `/dashboard` as a borrower → the 403 page with a large "Go to my home page" button.

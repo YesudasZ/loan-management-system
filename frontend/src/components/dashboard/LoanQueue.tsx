@@ -46,14 +46,17 @@ export function LoanQueue({
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Phones: one card per loan, so the action is visible without scrolling sideways. */}
-      <ul className="flex flex-col gap-3 sm:hidden">
+      {/* Phones and tablets: one card per loan, so the action is visible without scrolling sideways. */}
+      <ul className="flex flex-col gap-3 lg:hidden">
         {data.items.map((loan) => (
           <li key={loan.id} className="rounded-lg border border-slate-200 bg-white p-4">
             <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="font-medium text-slate-900">{loan.applicant.fullName}</p>
-                <p className="text-xs text-slate-500">{loan.borrower.email}</p>
+              {/* min-w-0 + wrap-anywhere: long names and emails wrap instead of widening the page. */}
+              <div className="min-w-0">
+                <p className="font-medium wrap-anywhere text-slate-900">
+                  {loan.applicant.fullName}
+                </p>
+                <p className="text-xs wrap-anywhere text-slate-500">{loan.borrower.email}</p>
               </div>
               {showStatus && <StatusBadge status={loan.status} />}
             </div>
@@ -75,11 +78,11 @@ export function LoanQueue({
           </li>
         ))}
       </ul>
-      <div className="hidden overflow-x-auto rounded-lg border border-slate-200 bg-white sm:block">
+      <div className="relative hidden overflow-x-auto rounded-lg border border-slate-200 bg-white lg:block">
         <table className="min-w-full divide-y divide-slate-200 text-sm">
           <thead className="bg-slate-50 text-left text-xs font-semibold uppercase text-slate-500">
             <tr>
-              <th scope="col" className="px-4 py-3">
+              <th scope="col" className="min-w-44 px-4 py-3">
                 Applicant
               </th>
               {showStatus && (
@@ -119,8 +122,10 @@ export function LoanQueue({
             {data.items.map((loan) => (
               <tr key={loan.id}>
                 <td className="px-4 py-3">
-                  <p className="font-medium text-slate-900">{loan.applicant.fullName}</p>
-                  <p className="text-xs text-slate-500">{loan.borrower.email}</p>
+                  <p className="font-medium wrap-anywhere text-slate-900">
+                    {loan.applicant.fullName}
+                  </p>
+                  <p className="text-xs wrap-anywhere text-slate-500">{loan.borrower.email}</p>
                 </td>
                 {showStatus && (
                   <td className="px-4 py-3">

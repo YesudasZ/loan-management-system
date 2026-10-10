@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/Button';
 import { Dialog } from '@/components/ui/Dialog';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { useSingleFlight } from '@/hooks/useSingleFlight';
 import { ApiError, apiRequest } from '@/lib/api-client';
 import { formatInr } from '@/lib/format';
 import type { LoanSummary } from '@/types/staff';
@@ -12,23 +13,22 @@ import { LoanQueue } from './LoanQueue';
 
 export function DisbursementQueue() {
   const [selected, setSelected] = useState<{ loan: LoanSummary; reload: () => void } | null>(null);
-  const [isDisbursing, setIsDisbursing] = useState(false);
+  const { isRunning: isDisbursing, run } = useSingleFlight();
 
-  async function confirmDisbursal() {
+  function confirmDisbursal() {
     if (!selected) return;
-    setIsDisbursing(true);
-    try {
-      await apiRequest(`/loans/${selected.loan.id}/disburse`, { method: 'POST' });
-      toast.success(
-        `Disbursed ${formatInr(selected.loan.principal)} to ${selected.loan.applicant.fullName}`,
-      );
-      selected.reload();
-    } catch (error) {
-      toast.error(error instanceof ApiError ? error.message : 'Could not mark it disbursed.');
-    } finally {
-      setIsDisbursing(false);
-      setSelected(null);
-    }
+    const { loan, reload } = selected;
+    void run(async () => {
+      try {
+        await apiRequest(`/loans/${loan.id}/disburse`, { method: 'POST' });
+        toast.success(`Disbursed ${formatInr(loan.principal)} to ${loan.applicant.fullName}`);
+        reload();
+      } catch (error) {
+        toast.error(error instanceof ApiError ? error.message : 'Could not mark it disbursed.');
+      } finally {
+        setSelected(null);
+      }
+    });
   }
 
   return (

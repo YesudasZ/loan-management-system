@@ -70,7 +70,7 @@ How the Loan Management System meets the security rules in [CLAUDE.md §6](../CL
 ### Frontend
 
 - `proxy.ts` (route guard) verifies the session JWT and **fails closed**: a missing secret or a bad token means anonymous, and the bad cookie is deleted.
-- Open redirects are blocked by `getSafeNextPath`: `//host`, `/\host`, absolute URLs and paths the role can't open fall back to the role's home (`route-access.test.ts`).
+- Open redirects are blocked by `getSafeNextPath`. `//host`, `/\host`, absolute URLs, encoded slashes/backslashes (`%2f`, `%5c`), and paths whose dot segments resolve to `//host` (`/.//evil.com`, `/%2e%2e//evil.com`; audit finding B-08) all fall back to the role's home, as do paths the role can't open. The check runs on the path that will actually be navigated to, after URL parsing (`route-access.test.ts`).
 - Page security headers: `X-Frame-Options: SAMEORIGIN`, `frame-ancestors 'self'`, `nosniff`, Referrer-Policy, Permissions-Policy. The `/api` proxy never runs through a Vercel Function, so uploads aren't capped at 4.5 MB.
 
 **Notes**

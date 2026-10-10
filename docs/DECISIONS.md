@@ -73,3 +73,15 @@ Short entries: the decision and the reason. Newest decisions are added at the bo
 52. **Salary slips: multer memory storage with tight limits (1 file, 0 fields, 5 MB) and no fileFilter.** The extension, the declared type and the magic bytes (`file-type`) are checked after upload and must all agree. Files go to GridFS under a generated name. A replaced slip is deleted unless a loan application still points at it.
 53. **Slips are served with their own CSP** (`default-src 'none'; object-src 'self'; frame-ancestors 'self'`), `nosniff` and `private, no-store`, replacing helmet's default (whose `object-src 'none'` can blank Chrome's PDF viewer).
 54. **The seed builds demo borrowers through the real services** (`saveProfile`, `uploadSalarySlip`, `applyForLoan`), so demo data always follows the same rules as the app. Demo slips are generated one-page PDFs.
+
+## Operations modules (branch 5)
+
+55. **Staff scoping: reads vs actions.** An executive's reads (list, detail, slip, payments) only show loans in their module's status; anything else is 404, as if it didn't exist. Actions return 404 only for an unknown id and 409 for a loan in the wrong status (the prompt's "invalid transition → 409"). This reveals a loan id's existence only to staff already allowed to perform that action. ADMIN reads every status.
+56. **Every status change is one conditional update** (`{ _id, status: from }` → new status + history entry), so two people approving at once can't both succeed (tested).
+57. **Payments run in a MongoDB transaction** (`connection.transaction`): read the loan, check the rules, insert the payment, increment `totalPaid` and auto-close, all or nothing. Concurrent payments on one loan conflict and are retried by the driver with fresh data, so a loan can never be overpaid (tested with two simultaneous payments). A duplicate UTR aborts the transaction and returns 409 with nothing written.
+58. **Payment rules return 422 with every failure:** amount > outstanding, date in the future, date before disbursal (calendar dates in India). Shape problems (zero amount, bad UTR characters) are 400.
+59. **After an action the UI returns to the module queue** instead of reloading the detail, because the loan has left that executive's view (it would be a 404). A partial payment stays on the loan page.
+60. **Staff responses carry names instead of ids** (one user lookup per request) and always a masked PAN (`ABCDE****F`).
+61. **List query strings are parsed in the controller** with a strict schema (unknown parameters → 400), because Express's types don't allow a narrowed `req.query` on a route.
+62. **Queue tables hide PAN and tenure below 1280 px**, so the action column always fits next to the sidebar.
+63. **The seed drives demo loans through the real approve, reject, disburse and payment services**, acting as the seeded staff accounts, so every module has realistic data and the history shows real names.

@@ -90,6 +90,7 @@ Format and severity scale: `audit/README.md`.
 - **Impact:** Anyone can send a link to the real LMS login page that, after the victim logs in successfully, lands them on an attacker's site (e.g. a copy of the login page saying "session expired, sign in again" to harvest the password, or a fake "payment details" page for a borrower). No data is read directly and the victim must log in, but it is exploitable with a plain link and it defeats the protection the code says it provides (`route-access.ts:106-109`).
 - **Breaks:** The function's own contract ("Blocks open redirects such as `//evil.com`…"); OWASP unvalidated-redirect guidance; this audit's B10 check.
 - **Suggested fix:** Validate the value you return, not only the input: after parsing, `const path = url.pathname; if (path.startsWith('//') || path.includes('\\')) return home;` (or reject any `next` whose normalised `pathname + search` differs from the input, or which contains a `.`/`..`/`%2e` segment). Add the six vectors above to `route-access.test.ts`.
+- **Browser confirmation (orchestrator, Lens E local run, 2026-10-10):** on `http://localhost:3405/login?next=/.//example.com`, logging in as `sales1@test.lms.dev` ended on **`https://example.com`** (tab origin `https://example.com`, page title "Example Domain"). Exploitable with a plain link.
 - **Status:** open
 
 ## B1 · Route table (derived from source)

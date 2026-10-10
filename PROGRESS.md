@@ -9,8 +9,8 @@ One entry per merged branch, newest last. Each entry says what changed and how t
 | 3   | `feat/frontend-foundation`     | merged                 |
 | 4   | `feat/borrower-journey`        | merged                 |
 | 5   | `feat/operations-modules`      | merged (E2E)           |
-| 6   | `feat/sales-admin-overview`    | in review              |
-| 7   | `test/rbac-security-hardening` | planned                |
+| 6   | `feat/sales-admin-overview`    | merged                 |
+| 7   | `test/rbac-security-hardening` | in review              |
 | 8   | `docs/readme-polish-release`   | planned (tag `v1.0.0`) |
 
 ---
@@ -212,3 +212,24 @@ Locally, after `npm run seed --prefix backend` with both apps running:
 1. `admin@lms.dev` → **Overview**: the cards match the seeded data. Pick "Rejected" in the filter → only Rohit Rejected. Click the "Applied" card → Sanction queue.
 2. `sales@lms.dev` → lands on **Sales**: Radha (Ready to apply), Nikhil (Slip pending), Bharat (Not eligible, with reasons), Neha and Bala (Details pending). The sidebar shows only Sales; `/dashboard` sends you back to Sales.
 3. Sign up a new borrower in another browser → they appear at the top of the Sales list as "Details pending".
+
+## 7. `test/rbac-security-hardening`
+
+**What changed**
+
+- **RBAC matrix** (`backend/tests/integration/rbac-matrix.test.ts`): **16 protected endpoints × 7 identities = 112 cells**. Anonymous → 401, a role not allowed → 403, an allowed role → the real success status (each allowed cell builds fresh data in the right state).
+- **Security suite** (`security.test.ts`):
+  - IDOR: one borrower can't reach another's progress, slip, loan, slip-by-loan or payments, and edits only touch their own records.
+  - Executives get 404 outside their module.
+  - Query-operator injection (`?status[$ne]=`, `?page[$gt]=`) and body operator injection → 400.
+  - Mass assignment (`userId`, `breResult`, `status`, `recordedBy`) → 400.
+  - CORS allow / deny.
+- **Unit tests:** the session cookie is `Secure` in production (module reloaded with `NODE_ENV=production`), and log redaction leaves no cookie, auth header or password in the output.
+- **`docs/SECURITY.md`:** a final review against CLAUDE.md §6, each rule mapped to its implementation and the test that proves it, plus the known limitations.
+- Backend tests: **326** (was 191). No production code changed apart from exporting the log redaction list for its test.
+
+**Manual test steps**
+
+1. `npm test --prefix backend`: 326 passing, including the 112-cell matrix.
+2. Read `docs/SECURITY.md`; every rule should point at a file and a test.
+3. Optional spot check on the deployed app: as `sanction@`, call `GET /api/v1/loans?status=DISBURSED` → 403; as a borrower, open `/dashboard` → 403 page.

@@ -17,7 +17,7 @@ One entry per merged branch, newest last. Each entry says what changed and how t
 | 11  | `style/theme-login-responsive-audit`         | merged                                   |
 | 12  | `chore/pre-submission-audit`                 | merged (report: `audit/AUDIT_REPORT.md`) |
 | 13  | Audit fixes (`fix/audit-*`, one branch each) | merged (#15–#19)                         |
-| 14  | `docs/evaluator-guide`                       | in review                                |
+| 14  | `docs/evaluator-guide`                       | merged                                   |
 
 ---
 
@@ -273,12 +273,12 @@ Locally, after `npm run seed --prefix backend` with both apps running:
 - [ ] Re-seed production, then do the deployed E2E run and re-seed again.
 - [ ] Upload check through Vercel: 4.9 MB passes, 5.1 MB → `FILE_TOO_LARGE` (§4).
 - [ ] Measure and set `TRUST_PROXY_HOPS` (DEPLOYMENT.md checkpoint B step 5).
-- [ ] Record a 3–5 minute demo video:
+- [x] Record a 3–5 minute demo video:
   1. A borrower fails the BRE, fixes it, uploads a slip and applies.
   2. Sanction approves; disbursement disburses.
   3. Collection records a partial payment, sees a duplicate UTR rejected, then the final payment auto-closes the loan.
   4. The borrower sees CLOSED.
-- [ ] Upload the video as unlisted, and put the link in the README ("Demo video") and the `v1.0.0` release notes.
+- [x] Upload the video (Google Drive, anyone with the link can view) and put the link in the README Submission section, `docs/EVALUATOR_GUIDE.md` and the final release notes.
 - [ ] Submit the repository URL, the live URL and the demo credentials (README "Demo accounts").
 
 ## 9. `feat/seed-test-data`

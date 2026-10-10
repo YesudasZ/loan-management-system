@@ -3,7 +3,7 @@
 ## Submission
 
 - **Live app:** https://loan-management-system-beta-pearl.vercel.app
-- **Demo video:** <VIDEO_LINK>
+- **Demo video & login credentials (Google Drive):** https://drive.google.com/drive/folders/1otgfW5d0zABoxoPfGcvLKE824S2YY9yt?usp=sharing
 - **API health:** https://loan-management-system-wl8j.onrender.com/health
 - **Step-by-step test guide:** [docs/EVALUATOR_GUIDE.md](docs/EVALUATOR_GUIDE.md) (credentials plus a 10-step walkthrough of the full flow)
 

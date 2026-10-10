@@ -3,7 +3,7 @@
 How to log in as each role and test the full loan flow on the live app.
 
 - **Live app:** https://loan-management-system-beta-pearl.vercel.app
-- **Demo video:** <VIDEO_LINK>
+- **Demo video & login credentials (Google Drive):** https://drive.google.com/drive/folders/1otgfW5d0zABoxoPfGcvLKE824S2YY9yt?usp=sharing
 
 > The backend runs on Render's free tier; the first request after idle can take up to a minute to wake up. The app shows a "Waking up the server" banner while it retries.
 

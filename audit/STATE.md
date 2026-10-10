@@ -4,16 +4,16 @@ Branch `chore/pre-submission-audit`. Method and rules: `audit/README.md`. Findin
 
 On resume: skip ticked items and lenses marked done, and continue from the first unticked item.
 
-| Lens                                      | Status  | Findings file                      |
-| ----------------------------------------- | ------- | ---------------------------------- |
-| A: Requirements compliance                | done    | `audit/findings/A-requirements.md` |
-| B: API and RBAC                           | done    | `audit/findings/B-api-rbac.md`     |
-| C: Security                               | done    | `audit/findings/C-security.md`     |
-| D: Functional correctness                 | done    | `audit/findings/D-functional.md`   |
-| E: Frontend responsive / a11y / stability | done    | `audit/findings/E-frontend.md`     |
-| F: Code quality, repo, docs               | done    | `audit/findings/F-quality-docs.md` |
-| G: Live smoke check (read-only)           | done    | `audit/findings/G-live.md`         |
-| Phase 2: verification and report          | pending | `audit/AUDIT_REPORT.md`            |
+| Lens                                      | Status | Findings file                      |
+| ----------------------------------------- | ------ | ---------------------------------- |
+| A: Requirements compliance                | done   | `audit/findings/A-requirements.md` |
+| B: API and RBAC                           | done   | `audit/findings/B-api-rbac.md`     |
+| C: Security                               | done   | `audit/findings/C-security.md`     |
+| D: Functional correctness                 | done   | `audit/findings/D-functional.md`   |
+| E: Frontend responsive / a11y / stability | done   | `audit/findings/E-frontend.md`     |
+| F: Code quality, repo, docs               | done   | `audit/findings/F-quality-docs.md` |
+| G: Live smoke check (read-only)           | done   | `audit/findings/G-live.md`         |
+| Phase 2: verification and report          | done   | `audit/AUDIT_REPORT.md`            |
 
 ## Lens A: Requirements compliance
 
@@ -181,4 +181,4 @@ The first item expands the PDF into one checkbox per sentence, inserted below it
 
 - [x] P1. Verifier re-checks every Critical and High (Confirmed / False positive + reason); spot-checks Medium/Low
 - [x] P2. Write audit/AUDIT_REPORT.md (summary + go/no-go, PDF matrix, API × role matrix, findings, fix plan)
-- [ ] P3. Commit, push, open the docs-only PR; stop for approval
+- [x] P3. Commit, push, open the docs-only PR; stop for approval

@@ -2,19 +2,21 @@
 
 One entry per merged branch, newest last. Each entry says what changed and how to test it by hand.
 
-| #   | Branch                               | Status                   |
-| --- | ------------------------------------ | ------------------------ |
-| 1   | `chore/repo-setup`                   | merged                   |
-| 2   | `feat/backend-foundation-auth`       | merged                   |
-| 3   | `feat/frontend-foundation`           | merged                   |
-| 4   | `feat/borrower-journey`              | merged                   |
-| 5   | `feat/operations-modules`            | merged (E2E)             |
-| 6   | `feat/sales-admin-overview`          | merged                   |
-| 7   | `test/rbac-security-hardening`       | merged                   |
-| 8   | `docs/readme-polish-release`         | merged (tagged `v1.0.0`) |
-| 9   | `feat/seed-test-data`                | merged                   |
-| 10  | `feat/admin-staff-management`        | merged                   |
-| 11  | `style/theme-login-responsive-audit` | in review                |
+| #   | Branch                                       | Status                                   |
+| --- | -------------------------------------------- | ---------------------------------------- |
+| 1   | `chore/repo-setup`                           | merged                                   |
+| 2   | `feat/backend-foundation-auth`               | merged                                   |
+| 3   | `feat/frontend-foundation`                   | merged                                   |
+| 4   | `feat/borrower-journey`                      | merged                                   |
+| 5   | `feat/operations-modules`                    | merged (E2E)                             |
+| 6   | `feat/sales-admin-overview`                  | merged                                   |
+| 7   | `test/rbac-security-hardening`               | merged                                   |
+| 8   | `docs/readme-polish-release`                 | merged (tagged `v1.0.0`)                 |
+| 9   | `feat/seed-test-data`                        | merged                                   |
+| 10  | `feat/admin-staff-management`                | merged                                   |
+| 11  | `style/theme-login-responsive-audit`         | merged                                   |
+| 12  | `chore/pre-submission-audit`                 | merged (report: `audit/AUDIT_REPORT.md`) |
+| 13  | Audit fixes (`fix/audit-*`, one branch each) | in progress                              |
 
 ---
 
@@ -409,3 +411,17 @@ On your phone:
    - On the loan step the slider thumbs are easy to drag and the totals update.
 6. Log in as `admin@lms.dev` → **Menu** opens the drawer with large links; the lists are cards; open Collection → a loan → the payment form fits. Try Sanction → Reject… → the dialog fits with the keyboard open.
 7. Open `/apply` as staff or `/dashboard` as a borrower → the 403 page with a large "Go to my home page" button.
+
+## 12. `chore/pre-submission-audit`
+
+A full pre-submission audit across 7 lenses (requirements, API/RBAC, security, functional, frontend, code/docs, live smoke test), with independent verification. Report and fix plan: `audit/AUDIT_REPORT.md`. Evidence: `audit/findings/`, `audit/scripts/`. Docs only.
+
+## 13. Audit fixes
+
+One `fix/audit-*` branch per approved group, each with regression tests and the full Definition of Done.
+
+- **`fix/audit-open-redirect` (B-08, High):**
+  - **Problem:** `getSafeNextPath` checked the raw `?next=` but returned the URL parser's normalised path, so `/login?next=/.//evil.com` redirected to `https://evil.com` after login.
+  - **Fix:** the navigated path is now checked too, and encoded `%2f`/`%5c` are refused.
+  - **Tests:** 16 new cases in `route-access.test.ts` (15 payloads × 3 roles, plus harmless dot segments still resolving internally); 11 fail without the fix.
+  - **Manual test** (live, after Vercel deploys): log out, open `/login?next=/.//example.com`, log in → you land on your home page, not example.com.

@@ -129,6 +129,35 @@ describe('getSafeNextPath', () => {
     expect(getSafeNextPath(next, 'BORROWER')).toBe('/apply');
   });
 
+  // Audit finding B-08: these all passed the old check and became `//evil.com` (a redirect to
+  // https://evil.com) once the URL parser resolved their dot segments or slashes.
+  it.each([
+    '/.//evil.com',
+    '/..//evil.com',
+    '/././/evil.com?q=1',
+    '/x/..//evil.com',
+    '/apply/..//evil.com',
+    '/%2e//evil.com',
+    '/%2E%2E//evil.com',
+    '/%2F%2Fevil.com',
+    '/%2fevil.com',
+    '/%5Cevil.com',
+    '/%5c%5cevil.com',
+    '\\\\evil.com',
+    'http:evil.com',
+    'https:/evil.com',
+    '//evil.com/apply',
+  ])('rejects the open-redirect payload %j for every role', (next) => {
+    expect(getSafeNextPath(next, 'BORROWER')).toBe('/apply');
+    expect(getSafeNextPath(next, 'ADMIN')).toBe('/dashboard');
+    expect(getSafeNextPath(next, 'SANCTION')).toBe('/dashboard/sanction');
+  });
+
+  it('still resolves harmless dot segments to the internal page', () => {
+    expect(getSafeNextPath('/apply/../apply/loan', 'BORROWER')).toBe('/apply/loan');
+    expect(getSafeNextPath('/dashboard/./staff', 'ADMIN')).toBe('/dashboard/staff');
+  });
+
   it('falls back to home when there is no next path', () => {
     expect(getSafeNextPath(null, 'ADMIN')).toBe('/dashboard');
     expect(getSafeNextPath(undefined, 'SALES')).toBe('/dashboard/sales');

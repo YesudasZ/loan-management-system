@@ -103,9 +103,15 @@ export function resolveRouteAccess(pathname: string, role: Role | null): RouteDe
 const UNSAFE_PATH_CHARACTERS = /[\u0000-\u001f\u007f\\]/;
 const PROBE_ORIGIN = 'https://x.invalid';
 
+/** Encoded slashes and backslashes: never needed in a return path, only useful for tricks. */
+const ENCODED_SEPARATOR = /%2f|%5c/i;
+
 /**
  * Returns `next` only if it is a same-site path the role may open; otherwise the role's home.
- * Blocks open redirects such as `//evil.com`, `/\evil.com` and `https://evil.com`.
+ * Blocks open redirects such as `//evil.com`, `/\evil.com`, `https://evil.com` and
+ * `/.//evil.com`. The last one passes a check on the raw input, but the URL parser resolves its
+ * dot segment to `//evil.com` (a protocol-relative URL), so the path that will actually be
+ * navigated to is checked too.
  */
 export function getSafeNextPath(next: string | null | undefined, role: Role): string {
   const home = getHomePath(role);
@@ -113,7 +119,8 @@ export function getSafeNextPath(next: string | null | undefined, role: Role): st
     !next ||
     !next.startsWith('/') ||
     next.startsWith('//') ||
-    UNSAFE_PATH_CHARACTERS.test(next)
+    UNSAFE_PATH_CHARACTERS.test(next) ||
+    ENCODED_SEPARATOR.test(next)
   ) {
     return home;
   }
@@ -124,10 +131,11 @@ export function getSafeNextPath(next: string | null | undefined, role: Role): st
   } catch {
     return home;
   }
-  if (url.origin !== PROBE_ORIGIN) {
+  const target = `${url.pathname}${url.search}`;
+  if (url.origin !== PROBE_ORIGIN || target.startsWith('//') || target.includes('\\')) {
     return home;
   }
 
   const decision = resolveRouteAccess(url.pathname, role);
-  return decision.type === 'allow' ? `${url.pathname}${url.search}` : home;
+  return decision.type === 'allow' ? target : home;
 }

@@ -117,3 +117,7 @@ Short entries: the decision and the reason. Newest decisions are added at the bo
 81. **Dashboard lists are cards until 1024px.** At 768px the sidebar leaves about 480px for content, too narrow for a four- or five-column table. Table scroll containers are `relative`, because absolutely positioned screen-reader labels otherwise escape them and widen the page (found by the audit at 768px).
 82. **Double-click protection uses a plain-variable guard** (`createSingleFlight` / `useSingleFlight`), not only `disabled` state. A second click within the same frame is ignored even before React re-renders the button. After a successful Apply or sanction decision, the buttons stay disabled until the page changes.
 83. **Error boundaries at three levels.** The root boundary catches any page. The `/apply` and `/dashboard` boundaries render inside their shells, so navigation keeps working. `global-error.tsx` covers a failure of the root layout itself.
+
+## Audit fixes
+
+84. **A database error in `authenticate` is a 503, not "not logged in".** Only a bad, expired or tampered token (or a deleted user) means 401 and a cleared cookie. Treating a lost database connection the same way logged every user out during a short outage (audit C-10). The frontend redirects to `/login` only on `UNAUTHENTICATED`, so a 503 shows the error with a retry and the session survives.

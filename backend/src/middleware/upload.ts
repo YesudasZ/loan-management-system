@@ -11,13 +11,15 @@ const memoryUpload = multer({
   limits: { fileSize: MAX_UPLOAD_BYTES, files: 1, fields: 0, parts: 1 },
 });
 
-function toUploadError(error: unknown): unknown {
-  if (!(error instanceof MulterError)) {
-    return error;
+/**
+ * Every error from the multipart parser is the client's: too large, too many parts, or a body
+ * that isn't valid multipart at all (no boundary, truncated, a broken part header).
+ */
+function toUploadError(error: unknown): AppError {
+  if (error instanceof MulterError && error.code === 'LIMIT_FILE_SIZE') {
+    return new AppError(413, 'FILE_TOO_LARGE', 'The file must be 5 MB or smaller.');
   }
-  return error.code === 'LIMIT_FILE_SIZE'
-    ? new AppError(413, 'FILE_TOO_LARGE', 'The file must be 5 MB or smaller.')
-    : new AppError(400, 'INVALID_UPLOAD', 'Send exactly one file in the "file" field.');
+  return new AppError(400, 'INVALID_UPLOAD', 'Send exactly one file in the "file" field.');
 }
 
 /** Parses a multipart upload with one file. Mount after authenticate + requireRole. */

@@ -25,7 +25,9 @@ export type ErrorCode =
   | 'CANNOT_CHANGE_OWN_ROLE'
   | 'LAST_ADMIN'
   | 'BORROWER_HAS_LOANS'
-  | 'ROLE_CHANGED';
+  | 'ROLE_CHANGED'
+  | 'BAD_REQUEST'
+  | 'UNSUPPORTED_MEDIA_TYPE';
 
 /**
  * An expected, client-facing error. Services throw it; the central error handler turns it

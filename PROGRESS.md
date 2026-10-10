@@ -429,3 +429,7 @@ One `fix/audit-*` branch per approved group, each with regression tests and the 
   - **Problem:** an admin could change their own role by sending their user id in upper-case hex; the guard compared strings.
   - **Fix:** every id is normalised to lower case at validation (`objectIdSchema`), and the guard compares ObjectIds.
   - **Tests:** the own id in upper case → 409 `CANNOT_CHANGE_OWN_ROLE` (fails without the fix); an upper-case id for another user still works.
+- **`fix/audit-client-errors` (C-09 + B-06, C-07, C-05; Low):**
+  - **Problem:** malformed requests (a broken `%` escape in the path, an unsupported charset or `Content-Encoding`, a corrupt gzip body, multipart without a boundary or cut short) fell through to the 500 handler, and a null character in the admin user search reached the database query.
+  - **Fix:** the error handler maps body-parser/Express 4xx errors to `400 BAD_REQUEST`, `413 PAYLOAD_TOO_LARGE` or `415 UNSUPPORTED_MEDIA_TYPE`; every multer parse error is `400 INVALID_UPLOAD` (size stays 413); the search refuses `\0` with `400 VALIDATION_ERROR`.
+  - **Tests:** `client-errors.test.ts`, 8 cases; 7 fail without the fix.

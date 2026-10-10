@@ -21,6 +21,20 @@ loansRouter.post(
   validate({ body: applyBodySchema }),
   loansController.apply,
 );
+loansRouter.get(
+  '/borrower/loans',
+  authenticate,
+  requireRole('BORROWER'),
+  loansController.listMyLoans, // parses its own query string (see the controller)
+);
+// The id is only looked up among the logged-in borrower's own loans (404 otherwise).
+loansRouter.get(
+  '/borrower/loans/:loanId',
+  authenticate,
+  requireRole('BORROWER'),
+  validate({ params: loanIdParamsSchema }),
+  loansController.getMyLoan,
+);
 
 // Operations dashboard. Action roles come from the state machine, the single source of truth.
 loansRouter.get(

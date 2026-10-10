@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import { getAuthUser } from '../../middleware/authenticate.js';
 import { sendSuccess } from '../../utils/respond.js';
-import type { LoanIdParams } from '../../utils/schemas.js';
+import { paginationQuerySchema, type LoanIdParams } from '../../utils/schemas.js';
 import * as operations from './loan-operations.service.js';
 import {
   listLoansQuerySchema,
@@ -18,6 +18,16 @@ export async function apply(req: Request<object, unknown, ApplyBody>, res: Respo
 
 // Query strings are parsed here rather than in validate(): Express's types don't allow a
 // narrowed req.query type on a route. Unknown or invalid parameters still give a 400.
+export async function listMyLoans(req: Request, res: Response) {
+  const query = paginationQuerySchema.parse(req.query);
+  sendSuccess(res, 200, await loansService.listBorrowerLoans(getAuthUser(req).id, query));
+}
+
+export async function getMyLoan(req: Request<LoanIdParams>, res: Response) {
+  const loan = await loansService.getBorrowerLoan(getAuthUser(req).id, req.params.loanId);
+  sendSuccess(res, 200, { loan });
+}
+
 export async function listLoans(req: Request, res: Response) {
   const query = listLoansQuerySchema.parse(req.query);
   sendSuccess(res, 200, await operations.listLoans(getAuthUser(req), query));

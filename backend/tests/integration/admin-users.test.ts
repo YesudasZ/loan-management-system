@@ -162,6 +162,25 @@ describe('admin staff management', () => {
       expect(await roleInDb(staff.ADMIN.id)).toBe('ADMIN');
     });
 
+    // Audit finding B-05: the self check compared strings, so the admin's own id written in
+    // upper-case hex slipped past it and changed their role.
+    it('refuses the admin’s own id in any letter case (409)', async () => {
+      const upperCaseId = staff.ADMIN.id.toUpperCase();
+      await createTestUser('ADMIN', 'admin2@test.dev'); // so "last admin" can't be the reason
+
+      const response = await changeRole(upperCaseId, 'SALES');
+
+      expect(response.status).toBe(409);
+      expect(response.body.error.code).toBe('CANNOT_CHANGE_OWN_ROLE');
+      expect(await roleInDb(staff.ADMIN.id)).toBe('ADMIN');
+    });
+
+    it('accepts a target id in upper case for another user', async () => {
+      const response = await changeRole(staff.SALES.id.toUpperCase(), 'COLLECTION');
+      expect(response.status).toBe(200);
+      expect(await roleInDb(staff.SALES.id)).toBe('COLLECTION');
+    });
+
     it('lets one admin demote another while an admin remains', async () => {
       const secondAdmin = await createTestUser('ADMIN', 'admin2@test.dev');
       const response = await changeRole(secondAdmin.id, 'COLLECTION');

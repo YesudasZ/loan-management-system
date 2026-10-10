@@ -1,5 +1,5 @@
 import bcrypt from 'bcrypt';
-import mongoose, { type Types } from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import { BCRYPT_COST, type Role } from '../../config/constants.js';
 import { LoanModel } from '../../models/loan.model.js';
 import { UserModel } from '../../models/user.model.js';
@@ -76,7 +76,8 @@ export async function changeUserRole(
   userId: string,
   role: Role,
 ): Promise<AdminUserDto> {
-  if (userId === admin.id) {
+  // Compared as ObjectIds, so a differently written form of the admin's own id still matches.
+  if (new Types.ObjectId(userId).equals(admin.id)) {
     throw new AppError(409, 'CANNOT_CHANGE_OWN_ROLE', 'You cannot change your own role.');
   }
   const user = await UserModel.findById(userId);

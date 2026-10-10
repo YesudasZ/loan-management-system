@@ -85,3 +85,9 @@ Short entries: the decision and the reason. Newest decisions are added at the bo
 61. **List query strings are parsed in the controller** with a strict schema (unknown parameters → 400), because Express's types don't allow a narrowed `req.query` on a route.
 62. **Queue tables hide PAN and tenure below 1280 px**, so the action column always fits next to the sidebar.
 63. **The seed drives demo loans through the real approve, reject, disburse and payment services**, acting as the seeded staff accounts, so every module has realistic data and the history shows real names.
+
+## Sales and admin overview (branch 6)
+
+64. **A Sales lead is a borrower with no loan of any status.** A rejected applicant has applied, so they're no longer a lead. The lead's stage (details pending → not eligible → slip pending → ready to apply) re-runs the BRE with today's date, like the wizard does.
+65. **The leads list is one aggregation on `users`**, sorted before the loan lookup so it can use the `{ role, createdAt, _id }` index, with `$facet` for the page and the total. Collection names come from the models, never string literals.
+66. **The admin summary is zero-filled** (every status appears, even with 0), and the admin overview reuses the module queue component with an optional status filter and a status column.

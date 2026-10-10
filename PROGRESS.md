@@ -8,8 +8,8 @@ One entry per merged branch, newest last. Each entry says what changed and how t
 | 2   | `feat/backend-foundation-auth` | merged                 |
 | 3   | `feat/frontend-foundation`     | merged                 |
 | 4   | `feat/borrower-journey`        | merged                 |
-| 5   | `feat/operations-modules`      | in review (E2E)        |
-| 6   | `feat/sales-admin-overview`    | planned                |
+| 5   | `feat/operations-modules`      | merged (E2E)           |
+| 6   | `feat/sales-admin-overview`    | in review              |
 | 7   | `test/rbac-security-hardening` | planned                |
 | 8   | `docs/readme-polish-release`   | planned (tag `v1.0.0`) |
 
@@ -197,3 +197,18 @@ Locally, after `npm run seed --prefix backend` with both apps running:
 - Re-run the production seed (it now also creates the SANCTIONED, DISBURSED, REJECTED and CLOSED demo loans).
 - Run the deployed E2E (the steps above on the Vercel URL).
 - Run the 4.9 MB upload check from §4 if not done yet.
+
+## 6. `feat/sales-admin-overview`
+
+**What changed**
+
+- **Sales** (`/dashboard/sales`, `GET /api/v1/leads`): registered borrowers who haven't applied yet, newest first and paginated. Each has a stage badge (Details pending / Not eligible / Slip pending / Ready to apply), and BRE failures are shown as notes.
+- **Admin overview** (`/dashboard`, `GET /api/v1/dashboard/summary`): count cards for leads and every loan status (zero-filled; the active ones link to their module), plus an **all-loans table with a status filter**.
+- **Tests:** backend 191 (one per lead stage, borrowers with any loan excluded, staff excluded, pagination order, zero-filled counts, RBAC: leads SALES+ADMIN, summary ADMIN only).
+- Checked in the browser against seeded data: counts 5 leads / 2 applied / 1 sanctioned / 2 disbursed / 1 closed / 1 rejected; the filter works; the Sales stages are correct.
+
+**Manual test steps**
+
+1. `admin@lms.dev` → **Overview**: the cards match the seeded data. Pick "Rejected" in the filter → only Rohit Rejected. Click the "Applied" card → Sanction queue.
+2. `sales@lms.dev` → lands on **Sales**: Radha (Ready to apply), Nikhil (Slip pending), Bharat (Not eligible, with reasons), Neha and Bala (Details pending). The sidebar shows only Sales; `/dashboard` sends you back to Sales.
+3. Sign up a new borrower in another browser → they appear at the top of the Sales list as "Details pending".

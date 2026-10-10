@@ -50,3 +50,20 @@ export interface Payment {
   recordedBy: { name: string };
   createdAt: string;
 }
+
+export type LeadStage = 'PROFILE_PENDING' | 'BRE_FAILED' | 'SALARY_SLIP_PENDING' | 'READY_TO_APPLY';
+
+/** A registered borrower who hasn't applied yet (Sales module). */
+export interface Lead {
+  id: string;
+  name: string;
+  email: string;
+  registeredAt: string;
+  stage: LeadStage;
+  breFailures: { rule: string; message: string }[];
+}
+
+export interface DashboardSummary {
+  loansByStatus: Record<LoanStatus, number>;
+  leadCount: number;
+}

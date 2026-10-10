@@ -5,17 +5,23 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { Pagination } from '@/components/ui/Pagination';
 import { PageSpinner } from '@/components/ui/Spinner';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useApiQuery } from '@/hooks/useApiQuery';
 import { formatDate, formatInr } from '@/lib/format';
 import type { LoanStatus } from '@/types/loan';
 import type { LoanSummary, Paginated } from '@/types/staff';
 
 interface LoanQueueProps {
-  /** Always sent, so ADMIN sees the same queue as the module's executive. */
-  status: LoanStatus;
+  /**
+   * Module queues always send their status, so ADMIN sees the same queue as the executive.
+   * Omitted only by the admin overview's all-loans table.
+   */
+  status?: LoanStatus;
   emptyTitle: string;
   showRepayment?: boolean;
-  renderAction: (loan: LoanSummary, reload: () => void) => ReactNode;
+  /** Adds a status column (the admin overview mixes statuses). */
+  showStatus?: boolean;
+  renderAction?: (loan: LoanSummary, reload: () => void) => ReactNode;
 }
 
 /**
@@ -26,11 +32,12 @@ export function LoanQueue({
   status,
   emptyTitle,
   showRepayment = false,
+  showStatus = false,
   renderAction,
 }: LoanQueueProps) {
   const [page, setPage] = useState(1);
   const { data, error, isLoading, reload } = useApiQuery<Paginated<LoanSummary>>(
-    `/loans?status=${status}&page=${page}`,
+    status ? `/loans?status=${status}&page=${page}` : `/loans?page=${page}`,
   );
 
   if (error) return <ErrorState message={error.message} onRetry={reload} />;
@@ -46,6 +53,11 @@ export function LoanQueue({
               <th scope="col" className="px-4 py-3">
                 Applicant
               </th>
+              {showStatus && (
+                <th scope="col" className="px-4 py-3">
+                  Status
+                </th>
+              )}
               <th scope="col" className="hidden px-4 py-3 xl:table-cell">
                 PAN
               </th>
@@ -81,6 +93,11 @@ export function LoanQueue({
                   <p className="font-medium text-slate-900">{loan.applicant.fullName}</p>
                   <p className="text-xs text-slate-500">{loan.borrower.email}</p>
                 </td>
+                {showStatus && (
+                  <td className="px-4 py-3">
+                    <StatusBadge status={loan.status} />
+                  </td>
+                )}
                 <td className="hidden px-4 py-3 font-mono text-xs xl:table-cell">
                   {loan.applicant.panMasked}
                 </td>
@@ -98,7 +115,7 @@ export function LoanQueue({
                 ) : (
                   <td className="px-4 py-3">{formatDate(loan.createdAt)}</td>
                 )}
-                <td className="px-4 py-3 text-right">{renderAction(loan, reload)}</td>
+                <td className="px-4 py-3 text-right">{renderAction?.(loan, reload)}</td>
               </tr>
             ))}
           </tbody>

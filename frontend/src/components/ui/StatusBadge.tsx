@@ -11,7 +11,7 @@ const STATUS_STYLES: Record<LoanStatus, string> = {
 export function StatusBadge({ status }: { status: LoanStatus }) {
   return (
     <span
-      className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${STATUS_STYLES[status]}`}
+      className={`inline-flex whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold ${STATUS_STYLES[status]}`}
     >
       {status}
     </span>

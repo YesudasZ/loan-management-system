@@ -46,7 +46,36 @@ export function LoanQueue({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+      {/* Phones: one card per loan, so the action is visible without scrolling sideways. */}
+      <ul className="flex flex-col gap-3 sm:hidden">
+        {data.items.map((loan) => (
+          <li key={loan.id} className="rounded-lg border border-slate-200 bg-white p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="font-medium text-slate-900">{loan.applicant.fullName}</p>
+                <p className="text-xs text-slate-500">{loan.borrower.email}</p>
+              </div>
+              {showStatus && <StatusBadge status={loan.status} />}
+            </div>
+            <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
+              <div>
+                <dt className="text-xs text-slate-500">Amount</dt>
+                <dd>{formatInr(loan.principal)}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-slate-500">
+                  {showRepayment ? 'Outstanding' : 'Tenure'}
+                </dt>
+                <dd className={showRepayment ? 'font-semibold' : undefined}>
+                  {showRepayment ? formatInr(loan.outstanding) : `${loan.tenureDays} days`}
+                </dd>
+              </div>
+            </dl>
+            {renderAction && <div className="mt-3">{renderAction(loan, reload)}</div>}
+          </li>
+        ))}
+      </ul>
+      <div className="hidden overflow-x-auto rounded-lg border border-slate-200 bg-white sm:block">
         <table className="min-w-full divide-y divide-slate-200 text-sm">
           <thead className="bg-slate-50 text-left text-xs font-semibold uppercase text-slate-500">
             <tr>

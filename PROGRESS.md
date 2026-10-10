@@ -433,3 +433,7 @@ One `fix/audit-*` branch per approved group, each with regression tests and the 
   - **Problem:** malformed requests (a broken `%` escape in the path, an unsupported charset or `Content-Encoding`, a corrupt gzip body, multipart without a boundary or cut short) fell through to the 500 handler, and a null character in the admin user search reached the database query.
   - **Fix:** the error handler maps body-parser/Express 4xx errors to `400 BAD_REQUEST`, `413 PAYLOAD_TOO_LARGE` or `415 UNSUPPORTED_MEDIA_TYPE`; every multer parse error is `400 INVALID_UPLOAD` (size stays 413); the search refuses `\0` with `400 VALIDATION_ERROR`.
   - **Tests:** `client-errors.test.ts`, 8 cases; 7 fail without the fix.
+- **`fix/audit-auth-db-outage` (C-10 + B-07, Low):**
+  - **Problem:** `authenticate` caught every error while loading the session user, so a database outage looked like a bad token: 401, cookie cleared, every user logged out.
+  - **Fix:** token verification and the user lookup are separate. A bad, expired or tampered token (or a deleted user) is still 401 with a cleared cookie; a database error is `503 DATABASE_UNAVAILABLE` and keeps the cookie. The frontend redirects to `/login` only on `UNAUTHENTICATED`, so the user sees the error with a retry.
+  - **Tests:** `auth-db-outage.test.ts`, 4 cases (503 on `/auth/me` and a module route with no cookie cleared, the same cookie works once the database is back, an invalid token is still 401); 2 fail without the fix.

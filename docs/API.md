@@ -27,7 +27,7 @@ The canonical API reference. Each feature branch adds the rows for the endpoints
 | 422  | `BRE_FAILED`, `PAYMENT_RULES_FAILED` (details: `{ failures: [{ rule, message }] }`, every failed rule)                                                                                                                   |
 | 429  | `RATE_LIMITED`                                                                                                                                                                                                           |
 | 500  | `INTERNAL_ERROR` (generic message, no internals)                                                                                                                                                                         |
-| 503  | `DATABASE_UNAVAILABLE` (`/health` only)                                                                                                                                                                                  |
+| 503  | `DATABASE_UNAVAILABLE` (`/health`, or any logged-in route when the session user can't be loaded; the cookie is kept)                                                                                                     |
 
 ## Endpoints
 

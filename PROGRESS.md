@@ -2,16 +2,16 @@
 
 One entry per merged branch, newest last. Each entry says what changed and how to test it by hand.
 
-| #   | Branch                         | Status                 |
-| --- | ------------------------------ | ---------------------- |
-| 1   | `chore/repo-setup`             | merged                 |
-| 2   | `feat/backend-foundation-auth` | merged                 |
-| 3   | `feat/frontend-foundation`     | merged                 |
-| 4   | `feat/borrower-journey`        | merged                 |
-| 5   | `feat/operations-modules`      | merged (E2E)           |
-| 6   | `feat/sales-admin-overview`    | merged                 |
-| 7   | `test/rbac-security-hardening` | in review              |
-| 8   | `docs/readme-polish-release`   | planned (tag `v1.0.0`) |
+| #   | Branch                         | Status                               |
+| --- | ------------------------------ | ------------------------------------ |
+| 1   | `chore/repo-setup`             | merged                               |
+| 2   | `feat/backend-foundation-auth` | merged                               |
+| 3   | `feat/frontend-foundation`     | merged                               |
+| 4   | `feat/borrower-journey`        | merged                               |
+| 5   | `feat/operations-modules`      | merged (E2E)                         |
+| 6   | `feat/sales-admin-overview`    | merged                               |
+| 7   | `test/rbac-security-hardening` | merged                               |
+| 8   | `docs/readme-polish-release`   | in review (tag `v1.0.0` after merge) |
 
 ---
 
@@ -233,3 +233,44 @@ Locally, after `npm run seed --prefix backend` with both apps running:
 1. `npm test --prefix backend`: 326 passing, including the 112-cell matrix.
 2. Read `docs/SECURITY.md`; every rule should point at a file and a test.
 3. Optional spot check on the deployed app: as `sanction@`, call `GET /api/v1/loans?status=DISBURSED` → 403; as a borrower, open `/dashboard` → 403 page.
+
+## 8. `docs/readme-polish-release`
+
+**What changed**
+
+- **README rewritten for evaluators:**
+  - live URLs and every demo account
+  - features per portal and module, and the tech stack
+  - architecture, loan-lifecycle and data-model diagrams (Mermaid), plus collections and indexes
+  - business rules (BRE, loan math with a worked example, payments) and the API summary
+  - security summary, project structure, local setup, tests, deployment, engineering process and known limitations
+- **`docs/ARCHITECTURE.md`:** the request pipeline, layer responsibilities, modules, where each key rule lives, the frontend structure and the testing approach.
+- **`docs/DEPLOYMENT.md`:** redeploy notes and a release checklist (rotate the DB password, a prod URI naming `lms_prod`, re-seed, upload check, `TRUST_PROXY_HOPS`, deployed E2E).
+- **UI polish:**
+  - Queues show as cards on phones, with the action button visible; the table returns from `sm` up.
+  - A 404 page links to the user's home page.
+  - A "Skip to content" link appears on keyboard focus (every layout's `<main>` is its target).
+- No backend changes. Backend 326 tests, frontend 76 tests.
+
+**Manual test steps**
+
+1. Read the README on GitHub: the Mermaid diagrams render, and every link (docs, PROGRESS, CLAUDE) opens.
+2. Open any queue (for example `sanction@` → Sanction) at phone width (375 px): cards with a **Review** button, no sideways scrolling.
+3. Open `/does-not-exist` → the 404 page → "Go to my home page" takes you to your role's home.
+4. Reload any page and press <kbd>Tab</kbd> once: "Skip to content" appears top-left. <kbd>Enter</kbd> jumps focus to the main content.
+
+**After the merge:** I tag `v1.0.0` and create the GitHub release.
+
+### Submission checklist (for you)
+
+- [ ] Rotate the Atlas password (it was shared in chat) and make the prod `MONGODB_URI` end in `/lms_prod?…`, on Render and locally (docs/DEPLOYMENT.md, release checklist).
+- [ ] Re-seed production, then do the deployed E2E run and re-seed again.
+- [ ] Upload check through Vercel: 4.9 MB passes, 5.1 MB → `FILE_TOO_LARGE` (§4).
+- [ ] Measure and set `TRUST_PROXY_HOPS` (DEPLOYMENT.md checkpoint B step 5).
+- [ ] Record a 3–5 minute demo video:
+  1. A borrower fails the BRE, fixes it, uploads a slip and applies.
+  2. Sanction approves; disbursement disburses.
+  3. Collection records a partial payment, sees a duplicate UTR rejected, then the final payment auto-closes the loan.
+  4. The borrower sees CLOSED.
+- [ ] Upload the video as unlisted, and put the link in the README ("Demo video") and the `v1.0.0` release notes.
+- [ ] Submit the repository URL, the live URL and the demo credentials (README "Demo accounts").

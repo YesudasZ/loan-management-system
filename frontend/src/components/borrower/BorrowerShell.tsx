@@ -19,7 +19,9 @@ export function BorrowerShell({ children }: { children: ReactNode }) {
               </div>
             </div>
           </header>
-          <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8">{children}</main>
+          <main id="main-content" className="mx-auto w-full max-w-3xl flex-1 px-4 py-8">
+            {children}
+          </main>
         </div>
       )}
     </AuthenticatedPage>

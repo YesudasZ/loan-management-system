@@ -83,6 +83,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
               <Sidebar role={user.role} onNavigate={() => setIsMenuOpen(false)} />
             </aside>
             <main
+              id="main-content"
               className={`${isMenuOpen ? 'hidden' : 'block'} min-w-0 flex-1 p-4 md:block md:p-8`}
             >
               {children}

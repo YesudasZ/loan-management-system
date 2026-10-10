@@ -37,7 +37,7 @@ async function startSession(user: UserDocument): Promise<Session> {
   return { user: authUser, token };
 }
 
-/** Public sign-up. Always creates a BORROWER; staff accounts come only from the seed. */
+/** Public sign-up. Always creates a BORROWER; staff accounts come from an admin or the seed. */
 export async function signup(input: SignupBody): Promise<Session> {
   const passwordHash = await bcrypt.hash(input.password, BCRYPT_COST);
   try {

@@ -4,6 +4,7 @@ import {
   NAME_MIN_LENGTH,
   PASSWORD_MAX_BYTES,
   PASSWORD_MIN_LENGTH,
+  STAFF_ROLES,
 } from './constants';
 
 // Mirrors the backend's auth schemas for instant feedback; the server validates again.
@@ -28,6 +29,11 @@ export const signupFormSchema = z.object({
     .regex(/\d/, 'Password must contain a digit'),
 });
 
+/** Admin's "Add staff member" form: the sign-up rules plus a staff role. */
+export const staffFormSchema = signupFormSchema.extend({
+  role: z.enum(STAFF_ROLES, 'Choose a role'),
+});
+
 export const loginFormSchema = z.object({
   email: emailSchema,
   password: z.string().min(1, 'Password is required'),
@@ -35,6 +41,7 @@ export const loginFormSchema = z.object({
 
 export type SignupForm = z.infer<typeof signupFormSchema>;
 export type LoginForm = z.infer<typeof loginFormSchema>;
+export type StaffForm = z.infer<typeof staffFormSchema>;
 
 /** Maps zod issues to `{ fieldName: firstMessage }` for showing under each input. */
 export function toFieldErrors(error: z.ZodError): Record<string, string> {

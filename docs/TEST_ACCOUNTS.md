@@ -24,15 +24,15 @@ How the data is built:
 
 Counts are from the test data alone. With the demo seed too, staff queues show a few more.
 
-| Role                                                                                 | Lands on                  | Sees                                                                                                                         |
-| ------------------------------------------------------------------------------------ | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| ADMIN (`admin1–5`)                                                                   | Overview                  | Counts: 5 APPLIED, 5 SANCTIONED, 5 DISBURSED, 75 CLOSED, 35 REJECTED, 10 leads. Every module in the sidebar, each with data. |
-| SALES (`sales1–5`)                                                                   | Sales                     | 10 leads at every stage, with BRE failure reasons.                                                                           |
-| SANCTION (`sanction1–5`)                                                             | Sanction                  | 5 APPLIED loans; each opens with a viewable PDF salary slip.                                                                 |
-| DISBURSEMENT (`disbursement1–5`)                                                     | Disbursement              | 5 SANCTIONED loans.                                                                                                          |
-| COLLECTION (`collection1–5`)                                                         | Collection                | 5 DISBURSED loans: one unpaid, two with one payment, one with two, one with three.                                           |
-| BORROWER (`applied1–5`, `sanctioned1–5`, `disbursed1–5`, `closed1–5`, `rejected1–5`) | Status page (latest loan) | **My loans** (header tab, or "See all my loans") lists all 5 loans, each opening its timeline.                               |
-| Lead (`lead1–10`)                                                                    | Their wizard step         | No loans by definition; see the leads table.                                                                                 |
+| Role                                                                                 | Lands on                  | Sees                                                                                                                                                                    |
+| ------------------------------------------------------------------------------------ | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ADMIN (`admin1–5`)                                                                   | Overview                  | Counts: 5 APPLIED, 5 SANCTIONED, 5 DISBURSED, 75 CLOSED, 35 REJECTED, 10 leads. Every module in the sidebar, each with data. Plus **Staff** (user and role management). |
+| SALES (`sales1–5`)                                                                   | Sales                     | 10 leads at every stage, with BRE failure reasons.                                                                                                                      |
+| SANCTION (`sanction1–5`)                                                             | Sanction                  | 5 APPLIED loans; each opens with a viewable PDF salary slip.                                                                                                            |
+| DISBURSEMENT (`disbursement1–5`)                                                     | Disbursement              | 5 SANCTIONED loans.                                                                                                                                                     |
+| COLLECTION (`collection1–5`)                                                         | Collection                | 5 DISBURSED loans: one unpaid, two with one payment, one with two, one with three.                                                                                      |
+| BORROWER (`applied1–5`, `sanctioned1–5`, `disbursed1–5`, `closed1–5`, `rejected1–5`) | Status page (latest loan) | **My loans** (header tab, or "See all my loans") lists all 5 loans, each opening its timeline.                                                                          |
+| Lead (`lead1–10`)                                                                    | Their wizard step         | No loans by definition; see the leads table.                                                                                                                            |
 
 ## Staff
 
@@ -221,20 +221,36 @@ Each borrower has 4 finished past loans and 1 current loan, which names their gr
 
 Log in as one account per role and open each URL. "403 page" means the app shows "You don't have access to this page". The API enforces the same rules: the same request with `curl` gets a 403 JSON error.
 
-| Role         | Should open                                                                                                                                   | Should show the 403 page                                                            |
-| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| ADMIN        | `/dashboard`, `/dashboard/sales`, `/dashboard/sanction` (+ a review page), `/dashboard/disbursement`, `/dashboard/collection` (+ a loan page) | `/apply`, `/apply/loans`                                                            |
-| SALES        | `/dashboard/sales` (`/dashboard` redirects here)                                                                                              | `/dashboard/sanction`, `/dashboard/disbursement`, `/dashboard/collection`, `/apply` |
-| SANCTION     | `/dashboard/sanction`, `/dashboard/sanction/<id of an APPLIED loan>`                                                                          | `/dashboard/sales`, `/dashboard/disbursement`, `/dashboard/collection`, `/apply`    |
-| DISBURSEMENT | `/dashboard/disbursement`                                                                                                                     | `/dashboard/sales`, `/dashboard/sanction`, `/dashboard/collection`, `/apply`        |
-| COLLECTION   | `/dashboard/collection`, `/dashboard/collection/<id of a DISBURSED loan>`                                                                     | `/dashboard/sales`, `/dashboard/sanction`, `/dashboard/disbursement`, `/apply`      |
-| BORROWER     | `/apply` (and its steps), `/apply/loans`, `/apply/loans/<own loan id>`                                                                        | `/dashboard` and every module                                                       |
+| Role         | Should open                                                                                                                                                       | Should show the 403 page                                                                                |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| ADMIN        | `/dashboard`, `/dashboard/sales`, `/dashboard/sanction` (+ a review page), `/dashboard/disbursement`, `/dashboard/collection` (+ a loan page), `/dashboard/staff` | `/apply`, `/apply/loans`                                                                                |
+| SALES        | `/dashboard/sales` (`/dashboard` redirects here)                                                                                                                  | `/dashboard/sanction`, `/dashboard/disbursement`, `/dashboard/collection`, `/dashboard/staff`, `/apply` |
+| SANCTION     | `/dashboard/sanction`, `/dashboard/sanction/<id of an APPLIED loan>`                                                                                              | `/dashboard/sales`, `/dashboard/disbursement`, `/dashboard/collection`, `/dashboard/staff`, `/apply`    |
+| DISBURSEMENT | `/dashboard/disbursement`                                                                                                                                         | `/dashboard/sales`, `/dashboard/sanction`, `/dashboard/collection`, `/dashboard/staff`, `/apply`        |
+| COLLECTION   | `/dashboard/collection`, `/dashboard/collection/<id of a DISBURSED loan>`                                                                                         | `/dashboard/sales`, `/dashboard/sanction`, `/dashboard/disbursement`, `/dashboard/staff`, `/apply`      |
+| BORROWER     | `/apply` (and its steps), `/apply/loans`, `/apply/loans/<own loan id>`                                                                                            | `/dashboard` and every module                                                                           |
 
 Also check:
 
 - **A borrower opening another borrower's loan id** (`/apply/loans/<id>`) sees "Loan not found". The API returns 404, as if it didn't exist.
 - **Executives outside their module:** a review URL for a loan in another status shows "Loan not found". For example, `sanction1` opening `/dashboard/sanction/<id of a DISBURSED loan>`.
 - **Logged out:** any `/apply` or `/dashboard` URL redirects to the login page.
+
+## Staff management (admin)
+
+Admins manage roles on **Staff** (`/dashboard/staff`). Any admin works: `admin@lms.dev` / `Password@123` or `admin1@test.lms.dev` / `Test@1234`.
+
+1. **Open Staff.** Log in as an admin and open **Staff** in the sidebar. Everyone is listed with a role badge. Try the search ("sharma") and the role filter (Admin, Borrower, …).
+2. **Add a staff member.** Click **Add staff member** and enter a name, a new email (for example `new.sanction@example.com`), a temporary password (8+ characters with a letter and a digit, e.g. `Welcome123`) and the role **Sanction**. You get a toast, and they appear in the list.
+   - Using an email that already exists (e.g. `sales@lms.dev`) shows "An account with this email already exists" under Email.
+3. **Log in as them.** Log out, then log in with the new email and the temporary password. You land on the **Sanction** queue; `/dashboard/staff` shows the 403 page.
+4. **Change their role.** Log back in as the admin. Use **Change role** on the new user → **Collection** → **Change role**. The dialog notes that they must log out and back in. When they do, they land on **Collection**.
+5. **Check the safety rules.** Each is refused with an inline message and nothing changes:
+   - **Your own row** has no Change role button ("You can't change your own role"). The API also refuses with 409.
+   - **A borrower with loans** (e.g. `applied1@test.lms.dev` or `demo.closed@lms.dev`) → any staff role: "This borrower has loans, so they cannot be given a staff role."
+   - **The last admin:** you can't change your own role, so with two admins you can demote the other one but never yourself. An admin always remains.
+
+Accounts you create here are real accounts. They aren't `@test.lms.dev`, so `--remove-test-data` won't delete them; change them back to Borrower, or delete them in Atlas if needed.
 
 ## Suggested action flow
 

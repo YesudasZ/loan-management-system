@@ -21,7 +21,11 @@ export type ErrorCode =
   | 'UNSUPPORTED_FILE_TYPE'
   | 'LOAN_NOT_DISBURSED'
   | 'DUPLICATE_UTR'
-  | 'PAYMENT_RULES_FAILED';
+  | 'PAYMENT_RULES_FAILED'
+  | 'CANNOT_CHANGE_OWN_ROLE'
+  | 'LAST_ADMIN'
+  | 'BORROWER_HAS_LOANS'
+  | 'ROLE_CHANGED';
 
 /**
  * An expected, client-facing error. Services throw it; the central error handler turns it

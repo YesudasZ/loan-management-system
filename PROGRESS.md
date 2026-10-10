@@ -12,7 +12,8 @@ One entry per merged branch, newest last. Each entry says what changed and how t
 | 6   | `feat/sales-admin-overview`    | merged                   |
 | 7   | `test/rbac-security-hardening` | merged                   |
 | 8   | `docs/readme-polish-release`   | merged (tagged `v1.0.0`) |
-| 9   | `feat/seed-test-data`          | in review                |
+| 9   | `feat/seed-test-data`          | merged                   |
+| 10  | `feat/admin-staff-management`  | in review                |
 
 ---
 
@@ -315,3 +316,48 @@ Locally, with your backend on your `lms_dev` database:
 6. `npm run seed --prefix backend -- --remove-test-data`: the `@test.lms.dev` accounts are gone, and the `@lms.dev` demo logins still work with their data.
 
 **After the merge (production):** run the commands in DEPLOYMENT.md, "Test data in production". Then record the demo video together (you type the signup, logins and PAN; I drive the rest).
+
+## 10. `feat/admin-staff-management`
+
+Goal: ADMIN can manage who has which role, from the dashboard.
+
+**What changed**
+
+- **API (ADMIN only):**
+  - `GET /api/v1/admin/users?role&search&page&limit`: users newest first; `search` matches the name or email ignoring case, as plain text.
+  - `POST /api/v1/admin/users`: creates a staff account with the sign-up rules. The role must be a staff role; a duplicate email → 409.
+  - `PATCH /api/v1/admin/users/:userId/role`
+  - No response ever includes the password hash.
+- **Safety rules** (each tested):
+  - An admin can't change their own role (409 `CANNOT_CHANGE_OWN_ROLE`).
+  - The last admin can't be demoted (409 `LAST_ADMIN`). It's re-checked after the write and undone if no admin is left, so two admins demoting each other at once can't both win.
+  - A borrower with any loan can't become staff (409 `BORROWER_HAS_LOANS`).
+  - The update is conditional on the role that was checked (409 `ROLE_CHANGED` on a concurrent change).
+- **Audit:** `roleHistory` on the user (`{ from, to, by, at }`), written in the same update as the change; admin-created accounts get a first entry. DECISIONS 72 explains why this beats logging.
+- **Staff page** (`/dashboard/staff`; in the sidebar and allowed by the route guard for ADMIN only, other roles get the 403 page):
+  - users with role badges, a search box and a role filter, with cards on phones
+  - **Add staff member** (name, email, temporary password, role)
+  - **Change role** (a dialog with a role dropdown and a confirm button), which explains that the user must log out and back in to see their new dashboard
+  - your own row has no change button
+  - 409s show inline; successes show a toast
+- **Tests:**
+  - backend **477** (was 424): `admin-users.test.ts` (32: list/search/filter/pagination, regex-safe search, create + log in with the temporary password, every safety rule, concurrent mutual demotion, Origin check, 403/401 for every non-admin) and the RBAC matrix, now 21 endpoints × 7 = **147 cells**
+  - frontend **78**: Staff is ADMIN-only in the route guard
+- **Checked in the browser** (local, demo seed):
+  - Staff list, role filter, search
+  - add a staff member (the duplicate email shows inline), change their role (toast)
+  - a borrower with a loan → staff refused inline
+  - the 375 px layout
+  - the new staff member logs in to their module and gets 403 on Staff
+- **Docs:** API (endpoints, `AdminUser`, error codes), README, SECURITY (four new rows, two known limitations), DECISIONS 72–76, TEST_ACCOUNTS (how to test).
+
+**Manual test steps** (live site, after the merge and the Render/Vercel deploys)
+
+1. Log in as `admin@lms.dev` / `Password@123` → **Staff** appears in the sidebar → the list shows everyone with role badges. Try the search and the role filter.
+2. **Add staff member**: a name, a new email you control (e.g. `qa.sanction1@example.com`), a temporary password such as `Welcome123`, role **Sanction** → toast, and the user is in the list. Try `sales@lms.dev` as the email: inline "already exists".
+3. Log out and log in as the new account → you land on **Sanction**; `/dashboard/staff` shows the 403 page.
+4. As the admin, **Change role** on that account → **Collection** → toast. Log in as them again → you land on **Collection**.
+5. Change role on `demo.closed@lms.dev` (a borrower with a loan) → any staff role → inline "This borrower has loans…".
+6. Your own row has no Change role button.
+7. As `sanction@lms.dev`, open `/dashboard/staff` → the 403 page.
+8. Clean up afterwards: change the QA account back to **Borrower** (it isn't removed by `--remove-test-data`).

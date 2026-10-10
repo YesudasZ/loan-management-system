@@ -13,6 +13,7 @@ import { env } from './config/env.js';
 import { logger } from './config/logger.js';
 import { errorHandler, notFoundHandler } from './middleware/error-handler.js';
 import { verifyOrigin } from './middleware/verify-origin.js';
+import { adminRouter } from './modules/admin/admin.routes.js';
 import { createAuthRouter } from './modules/auth/auth.routes.js';
 import { borrowerRouter } from './modules/borrower/borrower.routes.js';
 import { dashboardRouter } from './modules/dashboard/dashboard.routes.js';
@@ -63,6 +64,7 @@ export function createApp(options: AppOptions = {}): Express {
   app.use(API_PREFIX, loansRouter);
   app.use(API_PREFIX, paymentsRouter);
   app.use(API_PREFIX, dashboardRouter);
+  app.use(API_PREFIX, adminRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

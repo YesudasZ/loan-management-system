@@ -4,16 +4,16 @@ Branch `chore/pre-submission-audit`. Method and rules: `audit/README.md`. Findin
 
 On resume: skip ticked items and lenses marked done, and continue from the first unticked item.
 
-| Lens                                      | Status  | Findings file                      |
-| ----------------------------------------- | ------- | ---------------------------------- |
-| A: Requirements compliance                | pending | `audit/findings/A-requirements.md` |
-| B: API and RBAC                           | pending | `audit/findings/B-api-rbac.md`     |
-| C: Security                               | pending | `audit/findings/C-security.md`     |
-| D: Functional correctness                 | pending | `audit/findings/D-functional.md`   |
-| E: Frontend responsive / a11y / stability | pending | `audit/findings/E-frontend.md`     |
-| F: Code quality, repo, docs               | pending | `audit/findings/F-quality-docs.md` |
-| G: Live smoke check (read-only)           | pending | `audit/findings/G-live.md`         |
-| Phase 2: verification and report          | pending | `audit/AUDIT_REPORT.md`            |
+| Lens                                      | Status                              | Findings file                      |
+| ----------------------------------------- | ----------------------------------- | ---------------------------------- |
+| A: Requirements compliance                | pending                             | `audit/findings/A-requirements.md` |
+| B: API and RBAC                           | in progress                         | `audit/findings/B-api-rbac.md`     |
+| C: Security                               | pending                             | `audit/findings/C-security.md`     |
+| D: Functional correctness                 | pending                             | `audit/findings/D-functional.md`   |
+| E: Frontend responsive / a11y / stability | pending                             | `audit/findings/E-frontend.md`     |
+| F: Code quality, repo, docs               | pending                             | `audit/findings/F-quality-docs.md` |
+| G: Live smoke check (read-only)           | done (G4 results from user pending) | `audit/findings/G-live.md`         |
+| Phase 2: verification and report          | pending                             | `audit/AUDIT_REPORT.md`            |
 
 ## Lens A: Requirements compliance
 
@@ -37,7 +37,7 @@ The first item expands the PDF into one checkbox per sentence, inserted below it
 
 ## Lens B: API and RBAC (derived from code)
 
-- [ ] B1. Enumerate every registered Express route from source (method, path, middleware chain)
+- [x] B1. Enumerate every registered Express route from source (method, path, middleware chain)
 - [ ] B2. Compare with docs/API.md and the README (undocumented / missing / mismatched)
 - [ ] B3. Confirm the middleware order: verifyOrigin → authenticate → requireRole → upload → validate
 - [ ] B4. Route × identity matrix (anonymous, 6 roles, a second borrower): expected 401/403/404/2xx, run in-process
@@ -95,10 +95,10 @@ The first item expands the PDF into one checkbox per sentence, inserted below it
 
 ## Lens G: Live smoke check (read-only, orchestrator only)
 
-- [ ] G1. /health, the login page, the / redirect (anonymous)
-- [ ] G2. Security headers on pages and the API; Cache-Control no-store on /api; no stack traces in error responses
-- [ ] G3. Cross-origin POST → 403 (no session, changes nothing)
-- [ ] G4. Logged-in checks (every demo account lands right, modules load, 403 for wrong roles, cookie flags): script prepared for the user to run (the orchestrator can't sign in on non-local sites)
+- [x] G1. /health, the login page, the / redirect (anonymous)
+- [x] G2. Security headers on pages and the API; Cache-Control no-store on /api; no stack traces in error responses
+- [x] G3. Cross-origin POST → 403 (no session, changes nothing)
+- [x] G4. Logged-in checks (every demo account lands right, modules load, 403 for wrong roles, cookie flags): script prepared for the user to run (the orchestrator can't sign in on non-local sites)
 
 ## Phase 2: Verification and report
 

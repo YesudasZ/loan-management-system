@@ -4,16 +4,16 @@ Branch `chore/pre-submission-audit`. Method and rules: `audit/README.md`. Findin
 
 On resume: skip ticked items and lenses marked done, and continue from the first unticked item.
 
-| Lens                                      | Status      | Findings file                      |
-| ----------------------------------------- | ----------- | ---------------------------------- |
-| A: Requirements compliance                | pending     | `audit/findings/A-requirements.md` |
-| B: API and RBAC                           | in progress | `audit/findings/B-api-rbac.md`     |
-| C: Security                               | pending     | `audit/findings/C-security.md`     |
-| D: Functional correctness                 | pending     | `audit/findings/D-functional.md`   |
-| E: Frontend responsive / a11y / stability | pending     | `audit/findings/E-frontend.md`     |
-| F: Code quality, repo, docs               | pending     | `audit/findings/F-quality-docs.md` |
-| G: Live smoke check (read-only)           | done        | `audit/findings/G-live.md`         |
-| Phase 2: verification and report          | pending     | `audit/AUDIT_REPORT.md`            |
+| Lens                                      | Status  | Findings file                      |
+| ----------------------------------------- | ------- | ---------------------------------- |
+| A: Requirements compliance                | pending | `audit/findings/A-requirements.md` |
+| B: API and RBAC                           | done    | `audit/findings/B-api-rbac.md`     |
+| C: Security                               | done    | `audit/findings/C-security.md`     |
+| D: Functional correctness                 | done    | `audit/findings/D-functional.md`   |
+| E: Frontend responsive / a11y / stability | pending | `audit/findings/E-frontend.md`     |
+| F: Code quality, repo, docs               | pending | `audit/findings/F-quality-docs.md` |
+| G: Live smoke check (read-only)           | done    | `audit/findings/G-live.md`         |
+| Phase 2: verification and report          | pending | `audit/AUDIT_REPORT.md`            |
 
 ## Lens A: Requirements compliance
 
@@ -43,10 +43,10 @@ The first item expands the PDF into one checkbox per sentence, inserted below it
 - [x] B4. Route × identity matrix (anonymous, 6 roles, a second borrower): expected 401/403/404/2xx, run in-process
 - [x] B5. IDOR: borrower B vs A's profile, slip, loans, loan detail, payments, slip-by-loan
 - [x] B6. Executive scoping: reads outside the owned status → 404; wrong-state actions → 409
-- [ ] B7. Staff management: ADMIN only, no self-demote, last admin, borrower with loans, signup can't create staff
-- [ ] B8. No passwordHash (or bcrypt hash) in any response of any route
-- [ ] B9. Error envelope on every error; status codes match the docs; pagination limits enforced
-- [ ] B10. Frontend RBAC: route-access/proxy for every page × role, sidebar per role, ?next= open-redirect protection
+- [x] B7. Staff management: ADMIN only, no self-demote, last admin, borrower with loans, signup can't create staff
+- [x] B8. No passwordHash (or bcrypt hash) in any response of any route
+- [x] B9. Error envelope on every error; status codes match the docs; pagination limits enforced
+- [x] B10. Frontend RBAC: route-access/proxy for every page × role, sidebar per role, ?next= open-redirect protection
 
 ## Lens C: Security
 
@@ -58,11 +58,11 @@ The first item expands the PDF into one checkbox per sentence, inserted below it
 - [x] C6. Regex/ReDoS in search inputs (staff search)
 - [x] C7. Mass assignment: every write schema is strict (role, status, totalPaid, totals)
 - [x] C8. Business-logic abuse (negative/zero/fractional paise, overpay, dates, double actions, concurrency, UTR case/whitespace, apply twice, profile edit during an active loan, tampered totals)
-- [ ] C9. Uploads: spoofed magic bytes, wrong extension, 0-byte, >5 MB, polyglot, filename tricks; serving with auth + nosniff + CSP
-- [ ] C10. Headers: helmet, CORS allowlist, no-store on the API, page security headers (local config); no stack traces in production-mode errors
-- [ ] C11. Secrets: gitleaks full history; .env untracked; built frontend bundle has no JWT_SECRET/MONGODB_URI/keys; env validation
-- [ ] C12. Logs: PAN masking, no passwords/tokens/cookies
-- [ ] C13. npm audit (root, backend, frontend): list high/critical and runtime exploitability
+- [x] C9. Uploads: spoofed magic bytes, wrong extension, 0-byte, >5 MB, polyglot, filename tricks; serving with auth + nosniff + CSP
+- [x] C10. Headers: helmet, CORS allowlist, no-store on the API, page security headers (local config); no stack traces in production-mode errors
+- [x] C11. Secrets: gitleaks full history; .env untracked; built frontend bundle has no JWT_SECRET/MONGODB_URI/keys; env validation
+- [x] C12. Logs: PAN masking, no passwords/tokens/cookies
+- [x] C13. npm audit (root, backend, frontend): list high/critical and runtime exploitability
 
 ## Lens D: Functional correctness (local)
 
@@ -72,8 +72,8 @@ The first item expands the PDF into one checkbox per sentence, inserted below it
 - [x] D4. Payments and auto-close: exact payoff closes; partials; outstanding never negative; rollback on duplicate UTR
 - [x] D5. Wizard resume after logout at each step; "Apply again" after REJECTED / CLOSED
 - [x] D6. Sales lead stages; admin counts match the database
-- [ ] D7. Seed idempotent; demo accounts log in; test-data add/remove leave the demo data intact
-- [ ] D8. Full E2E flow from the video script, API-level, with a fresh borrower
+- [x] D7. Seed idempotent; demo accounts log in; test-data add/remove leave the demo data intact
+- [x] D8. Full E2E flow from the video script, API-level, with a fresh borrower
 
 ## Lens E: Frontend (local)
 

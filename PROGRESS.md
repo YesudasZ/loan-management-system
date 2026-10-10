@@ -16,7 +16,8 @@ One entry per merged branch, newest last. Each entry says what changed and how t
 | 10  | `feat/admin-staff-management`                | merged                                   |
 | 11  | `style/theme-login-responsive-audit`         | merged                                   |
 | 12  | `chore/pre-submission-audit`                 | merged (report: `audit/AUDIT_REPORT.md`) |
-| 13  | Audit fixes (`fix/audit-*`, one branch each) | in progress                              |
+| 13  | Audit fixes (`fix/audit-*`, one branch each) | merged (#15–#19)                         |
+| 14  | `docs/evaluator-guide`                       | in review                                |
 
 ---
 
@@ -441,3 +442,7 @@ One `fix/audit-*` branch per approved group, each with regression tests and the 
   - **Docs:** the endpoint table in `docs/API.md` renders as one table again (B-01). README: test counts (491 + 98), the `admin` module, the docs list, the required checks, the replica-set requirement, the install warnings and the typecheck env (F-08, A-03, A-04, F-04). ARCHITECTURE, DECISIONS (#30, #31, #34), DEPLOYMENT, UI and SECURITY lines that contradicted the code (F-09, and the B-02/C-03/D-03 doc lines).
   - **Hygiene:** `agentRules: false` in `next.config.ts`, so `next dev` no longer writes `frontend/AGENTS.md` (F-06); merged local branches pruned (F-07).
   - **Manual test:** none needed beyond reading the rendered docs on GitHub (the API table, README "Local setup").
+
+## 14. `docs/evaluator-guide`
+
+Submission prep, docs only. README starts with a **Submission** section (live app, demo video placeholder, the Render wake-up note, a credentials table for all 6 roles taken from `seed-demo.ts`, how to log out and switch roles) and links the new **`docs/EVALUATOR_GUIDE.md`**: the same credentials and a 10-step walkthrough of the full flow (signup → BRE fail/pass → slip → apply → approve → disburse → payments incl. duplicate UTR and overpayment → auto-close → borrower sees CLOSED → admin Overview and Staff).

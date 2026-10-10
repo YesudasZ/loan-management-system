@@ -15,6 +15,7 @@ import { errorHandler, notFoundHandler } from './middleware/error-handler.js';
 import { verifyOrigin } from './middleware/verify-origin.js';
 import { createAuthRouter } from './modules/auth/auth.routes.js';
 import { borrowerRouter } from './modules/borrower/borrower.routes.js';
+import { dashboardRouter } from './modules/dashboard/dashboard.routes.js';
 import { healthRouter } from './modules/health/health.routes.js';
 import { loansRouter } from './modules/loans/loans.routes.js';
 import { paymentsRouter } from './modules/payments/payments.routes.js';
@@ -61,6 +62,7 @@ export function createApp(options: AppOptions = {}): Express {
   app.use(API_PREFIX, uploadsRouter);
   app.use(API_PREFIX, loansRouter);
   app.use(API_PREFIX, paymentsRouter);
+  app.use(API_PREFIX, dashboardRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

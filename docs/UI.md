@@ -56,7 +56,7 @@ Text needs 4.5:1; large text, icons and other graphics need 3:1. These ratios we
 - **No zoom on focus.** Inputs, selects and the reject-reason textarea use 16px text on phones, so iOS Safari doesn't zoom into the field. They drop to 14px from 640px up.
 - **Dialogs.** They are never wider than the screen minus 2rem, never taller than the dynamic viewport minus 2rem, and they scroll inside. So they fit a 360px phone with the keyboard open.
 - **Long text.** Long names and emails use `wrap-anywhere` with `min-w-0`, so they wrap instead of widening the page. Header names are truncated.
-- **Tables.** Lists are cards below 640px and tables above it; every table also sits in its own `overflow-x-auto` container.
+- **Tables.** My loans is cards below 640px; the loan queues and Staff are cards below 1024px (DECISIONS #81); the Sales leads list stays a scrolling table. Every table sits in its own `overflow-x-auto` container.
 - **Navigation.** On phones the dashboard sidebar is a drawer behind the **Menu** button (`aria-expanded`); it closes after a link is chosen.
 
 ## Errors and loading

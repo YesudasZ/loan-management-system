@@ -18,9 +18,9 @@ flowchart LR
 Every request passes through the same steps, in order (`src/app.ts`):
 
 1. `helmet`, CORS allowlist, `trust proxy` (`TRUST_PROXY_HOPS`), pino-http logging (secrets redacted), `Cache-Control: no-store`
-2. `verifyOrigin`: POST, PUT, PATCH or DELETE from a foreign `Origin` → 403 `INVALID_ORIGIN`
-3. `express.json({ limit: '100kb' })` and the cookie parser
-4. Router: `authenticate` (401) → `requireRole(...)` (403) → `validate(schema)` (400) → controller
+2. `express.json({ limit: '100kb' })` and the cookie parser (a malformed body → 400/413/415, never 500)
+3. `verifyOrigin`: POST, PUT, PATCH or DELETE from a foreign `Origin` → 403 `INVALID_ORIGIN`
+4. Router: `authenticate` (401; 503 if the database is down) → `requireRole(...)` (403) → `validate(schema)` (400) → controller
 5. Controller → service. A service throws `AppError` (404 / 409 / 422) or returns data.
 6. `errorHandler`: one envelope for every error; unknown errors become a generic 500
 
@@ -49,6 +49,7 @@ The role check runs **before** validation and any lookup, so an unauthorised cal
 | `loans`     | apply, the borrower's own loan history; staff list, detail, approve, reject, disburse | each transition is one conditional `findOneAndUpdate({ _id, status: from })`          |
 | `payments`  | list, record                                                                          | one MongoDB transaction: insert payment, `$inc totalPaid`, auto-close                 |
 | `dashboard` | leads, summary                                                                        | aggregations; leads are borrowers with no loan yet                                    |
+| `admin`     | list users, add a staff member, change a role                                         | ADMIN only; lock-out and segregation-of-duties rules; a role history on each user     |
 | `health`    | `GET /health`                                                                         | pings the database (2 s cap), 503 when it's down                                      |
 
 ### Key rules and where they live
@@ -67,7 +68,7 @@ The role check runs **before** validation and any lookup, so an unauthorised cal
 - **Route guard (`src/proxy.ts`).** Next 16's renamed middleware verifies the session JWT with the shared secret and applies `resolveRouteAccess`: anonymous → login, a wrong role → 403 page, logged-in users skip login. It fails closed. This is UX only; the API enforces every rule again.
 - **Borrower wizard (`/apply/*`).** `getWizardRedirect` sends the borrower to the right step from `/borrower/progress`. Steps are locked while a loan is active.
 - **Mirrored business logic.** `lib/bre.ts` and `lib/loan-math.ts` mirror the backend for instant feedback. They're tested against the backend's JSON vectors (`backend/tests/fixtures/`), so they can't drift. The server's answer always wins.
-- **Dashboard (`/dashboard/*`).** A shell with a role-filtered sidebar; each module is one component (`SanctionModule`, `DisbursementModule`, `CollectionModule`, `SalesModule`, `AdminOverview`). They share `LoanQueue` (a table, with cards on phones), `LoanFacts` and `SalarySlipViewer`.
+- **Dashboard (`/dashboard/*`).** A shell with a role-filtered sidebar; each module is one component (`SanctionModule`, `DisbursementModule`, `CollectionModule`, `SalesModule`, `StaffModule`, `AdminOverview`). They share `LoanQueue` (a table, with cards below 1024px), `LoanFacts` and `SalarySlipViewer`.
 
 ## Testing approach
 

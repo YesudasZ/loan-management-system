@@ -2,7 +2,7 @@ import { pino } from 'pino';
 import { env } from './env.js';
 
 // Secrets never reach the logs. Request bodies are never logged at all.
-const REDACTED_PATHS = [
+export const REDACTED_PATHS = [
   'req.headers.cookie',
   'req.headers.authorization',
   'res.headers["set-cookie"]',

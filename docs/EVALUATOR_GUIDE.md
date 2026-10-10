@@ -3,26 +3,24 @@
 How to log in as each role and test the full loan flow on the live app.
 
 - **Live app:** https://loan-management-system-beta-pearl.vercel.app
-- **Demo video & login credentials (Google Drive):** https://drive.google.com/drive/folders/1otgfW5d0zABoxoPfGcvLKE824S2YY9yt?usp=sharing
+- **Demo video & login credentials:** https://drive.google.com/drive/folders/1otgfW5d0zABoxoPfGcvLKE824S2YY9yt?usp=sharing
 
 > The backend runs on Render's free tier; the first request after idle can take up to a minute to wake up. The app shows a "Waking up the server" banner while it retries.
 
-## Login credentials
+## Roles
 
-Every account below uses the password **`Password@123`** (from `backend/src/scripts/seed-demo.ts`).
+The login email and password for each role are in the **Google Drive folder** linked above (the seed creates one account per role).
 
-| Role         | Email                  | Password       | Lands on                                   | What to test                                                                                                   |
-| ------------ | ---------------------- | -------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
-| Admin        | `admin@lms.dev`        | `Password@123` | `/dashboard` (Overview)                    | Loan counts by status; every module in the sidebar; the **Staff** page (add staff, change roles)               |
-| Sales        | `sales@lms.dev`        | `Password@123` | `/dashboard/sales`                         | Leads: borrowers who registered but haven't applied, with their stage                                          |
-| Sanction     | `sanction@lms.dev`     | `Password@123` | `/dashboard/sanction`                      | APPLIED loans: view the salary slip, **Approve**, or **Reject** with a reason                                  |
-| Disbursement | `disbursement@lms.dev` | `Password@123` | `/dashboard/disbursement`                  | SANCTIONED loans: **Mark disbursed**                                                                           |
-| Collection   | `collection@lms.dev`   | `Password@123` | `/dashboard/collection`                    | DISBURSED loans: **Record payment** (UTR, amount, date); duplicate UTR and overpayment are refused; auto-close |
-| Borrower     | `borrower@lms.dev`     | `Password@123` | `/apply` (resumes at the next wizard step) | Personal details + eligibility check, salary slip upload, loan sliders, apply, status page, **My loans**       |
+| Role         | Lands on                                   | What to test                                                                                                   |
+| ------------ | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| Admin        | `/dashboard` (Overview)                    | Loan counts by status; every module in the sidebar; the **Staff** page (add staff, change roles)               |
+| Sales        | `/dashboard/sales`                         | Leads: borrowers who registered but haven't applied, with their stage                                          |
+| Sanction     | `/dashboard/sanction`                      | APPLIED loans: view the salary slip, **Approve**, or **Reject** with a reason                                  |
+| Disbursement | `/dashboard/disbursement`                  | SANCTIONED loans: **Mark disbursed**                                                                           |
+| Collection   | `/dashboard/collection`                    | DISBURSED loans: **Record payment** (UTR, amount, date); duplicate UTR and overpayment are refused; auto-close |
+| Borrower     | `/apply` (resumes at the next wizard step) | Personal details + eligibility check, salary slip upload, loan sliders, apply, status page, **My loans**       |
 
-Public signup always creates a BORROWER; staff roles are assigned by an admin on the Staff page.
-
-More seeded borrowers in specific states (`lead.*@lms.dev`, `demo.*@lms.dev`, same password) are listed in the [README](../README.md#demo-accounts).
+Public signup always creates a BORROWER; staff roles are assigned by an admin on the Staff page. The seed also adds demo borrowers in every loan state, so each staff queue has records to act on.
 
 ### Logging out and switching roles
 
@@ -37,13 +35,13 @@ Use a new email for the borrower so the flow starts clean. Please don't enter re
 3. **Pass the eligibility check.** Fix the details: an age between 23 and 50, salary `50000`, PAN `ABCDE1234F`, employment **Salaried**. **Check eligibility and continue** takes you to **Salary slip**.
 4. **Upload the salary slip.** Choose a PDF, JPG or PNG up to 5 MB and **Upload**. A different file type, or a file over 5 MB, is refused. Then **Continue to loan amount**.
 5. **Apply.** Set the amount to **₹1,00,000** and the tenure to **365 days** (sliders; the arrow keys move them in steps). The panel shows 12% p.a. simple interest: interest **₹12,000**, total repayment **₹1,12,000**. Click **Apply for ₹1,00,000**. The status page shows **APPLIED**.
-6. **Sanction approves.** Log out and log in as `sanction@lms.dev`. Open your borrower's loan, **View slip**, then **Approve**. (To see rejection instead, use **Reject** on another applied loan with a reason of at least 5 characters; the borrower sees that reason.) The loan leaves the Sanction queue as **SANCTIONED**.
-7. **Disburse.** Log in as `disbursement@lms.dev`, open the loan and **Mark disbursed** → **Confirm disbursal**. It moves to Collection as **DISBURSED**.
-8. **Record payments, including a duplicate UTR.** Log in as `collection@lms.dev` and open the loan (outstanding ₹1,12,000).
+6. **Sanction approves.** Log out and log in as the **Sanction** account. Open your borrower's loan, **View slip**, then **Approve**. (To see rejection instead, use **Reject** on another applied loan with a reason of at least 5 characters; the borrower sees that reason.) The loan leaves the Sanction queue as **SANCTIONED**.
+7. **Disburse.** Log in as the **Disbursement** account, open the loan and **Mark disbursed** → **Confirm disbursal**. It moves to Collection as **DISBURSED**.
+8. **Record payments, including a duplicate UTR.** Log in as the **Collection** account and open the loan (outstanding ₹1,12,000).
    - **Record payment** with UTR `EVAL100001`, amount `50000` and today's date. Outstanding drops to **₹62,000**.
    - Record another payment with the **same** UTR `EVAL100001`: refused with "A payment with this UTR has already been recorded."
    - Try UTR `EVAL100002` with amount `70000`: refused, because it's more than the outstanding ₹62,000. A future payment date is refused too.
 9. **Auto-close.** Record UTR `EVAL100002` with **Fill outstanding amount** (₹62,000). Total paid now equals the total repayment, so the loan is **CLOSED** automatically and leaves the Collection queue.
 10. **Check as the borrower, then as admin.**
     - Log in as your borrower: the status page shows **CLOSED** with the full timeline, and **My loans** lists the loan. **Apply again** is offered.
-    - Log in as `admin@lms.dev`: the **Overview** counts include the closed loan, and the Sales page no longer lists your borrower as a lead. Open **Staff**: search for your borrower, add a staff member (for example a new Sanction user), and see that an admin can't change their own role or demote the last admin.
+    - Log in as the **Admin** account: the **Overview** counts include the closed loan, and the Sales page no longer lists your borrower as a lead. Open **Staff**: search for your borrower, add a staff member (for example a new Sanction user), and see that an admin can't change their own role or demote the last admin.

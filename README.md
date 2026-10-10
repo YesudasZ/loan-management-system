@@ -5,24 +5,10 @@
 ## Submission
 
 - **Live app:** https://loan-management-system-beta-pearl.vercel.app
-- **Demo video & login credentials (Google Drive):** https://drive.google.com/drive/folders/1otgfW5d0zABoxoPfGcvLKE824S2YY9yt?usp=sharing
+- **Demo video & login credentials:** https://drive.google.com/drive/folders/1otgfW5d0zABoxoPfGcvLKE824S2YY9yt?usp=sharing
 - **API health:** https://loan-management-system-wl8j.onrender.com/health
-- **Step-by-step test guide:** [docs/EVALUATOR_GUIDE.md](docs/EVALUATOR_GUIDE.md) (credentials plus a 10-step walkthrough of the full flow)
 
 > The backend runs on Render's free tier; the first request after idle can take up to a minute to wake up. The app shows a "Waking up the server" banner while it retries.
-
-| Role         | Email                  | Password       | Lands on                                   | What to test                                                                                                   |
-| ------------ | ---------------------- | -------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
-| Admin        | `admin@lms.dev`        | `Password@123` | `/dashboard` (Overview)                    | Loan counts by status; every module in the sidebar; the **Staff** page (add staff, change roles)               |
-| Sales        | `sales@lms.dev`        | `Password@123` | `/dashboard/sales`                         | Leads: borrowers who registered but haven't applied, with their stage                                          |
-| Sanction     | `sanction@lms.dev`     | `Password@123` | `/dashboard/sanction`                      | APPLIED loans: view the salary slip, **Approve**, or **Reject** with a reason                                  |
-| Disbursement | `disbursement@lms.dev` | `Password@123` | `/dashboard/disbursement`                  | SANCTIONED loans: **Mark disbursed**                                                                           |
-| Collection   | `collection@lms.dev`   | `Password@123` | `/dashboard/collection`                    | DISBURSED loans: **Record payment** (UTR, amount, date); duplicate UTR and overpayment are refused; auto-close |
-| Borrower     | `borrower@lms.dev`     | `Password@123` | `/apply` (resumes at the next wizard step) | Personal details + eligibility check, salary slip upload, loan sliders, apply, status page, **My loans**       |
-
-Public signup always creates a BORROWER; staff roles are assigned by an admin on the Staff page.
-
-**Log out** is the button at the top right of every page (in the staff dashboard, next to your name and role). Test each role in turn: log out, then log in as the next account. Opening another role's page shows the 403 page, and the API refuses the request too.
 
 ## About
 
@@ -30,31 +16,7 @@ A lending platform where borrowers apply for a personal loan online, and interna
 
 `APPLIED → SANCTIONED → DISBURSED → CLOSED` (or `APPLIED → REJECTED`)
 
-## Demo accounts
-
-Every seeded account uses the password **`Password@123`**.
-
-| Email                                                | Role / state                                                                  |
-| ---------------------------------------------------- | ----------------------------------------------------------------------------- |
-| `admin@lms.dev`                                      | ADMIN: every module, the overview and Staff management                        |
-| `sales@lms.dev`                                      | SALES                                                                         |
-| `sanction@lms.dev`                                   | SANCTION                                                                      |
-| `disbursement@lms.dev`                               | DISBURSEMENT                                                                  |
-| `collection@lms.dev`                                 | COLLECTION                                                                    |
-| `borrower@lms.dev`                                   | BORROWER: fresh, to walk the whole application                                |
-| `lead.new@lms.dev`                                   | BORROWER: registered, no details yet (Sales lead)                             |
-| `lead.brefail@lms.dev`                               | BORROWER: failed the eligibility check (age 21, unemployed)                   |
-| `lead.noslip@lms.dev`                                | BORROWER: eligible, no salary slip yet                                        |
-| `lead.ready@lms.dev`                                 | BORROWER: eligible with a slip, hasn't applied                                |
-| `demo.applied1@lms.dev`, `demo.applied2@lms.dev`     | BORROWER: loan APPLIED (Sanction queue)                                       |
-| `demo.sanctioned@lms.dev`                            | BORROWER: loan SANCTIONED (Disbursement queue)                                |
-| `demo.disbursed1@lms.dev`, `demo.disbursed2@lms.dev` | BORROWER: loan DISBURSED (Collection queue; the second has a partial payment) |
-| `demo.rejected@lms.dev`                              | BORROWER: loan REJECTED, with a reason                                        |
-| `demo.closed@lms.dev`                                | BORROWER: loan CLOSED (fully repaid)                                          |
-
-This is a demo with shared, published credentials: please don't enter real personal data or documents.
-
-**More test data:** `npm run seed -- --test-data` adds 60 removable `@test.lms.dev` accounts (password `Test@1234`), so every role sees at least 5 records after login. Borrowers each have 5 loans, and there are 10 Sales leads. Accounts, per-borrower loans, an RBAC checklist and a suggested walkthrough are in **[docs/TEST_ACCOUNTS.md](docs/TEST_ACCOUNTS.md)**.
+A step-by-step walkthrough of the full flow, role by role, is in **[docs/EVALUATOR_GUIDE.md](docs/EVALUATOR_GUIDE.md)**. This is a demo: please don't enter real personal data or upload real documents.
 
 ## Features
 
@@ -270,13 +232,13 @@ The database **must be a replica set**, because recording a payment uses a trans
    cp frontend/.env.example frontend/.env.local
    ```
 
-4. Seed the demo accounts and data. It's safe to re-run: it resets the 17 demo accounts (role and password) and their loans, and leaves other users alone. It also deletes any payment whose UTR starts with `SEED` (the prefix the seed uses), so don't record real payments with that prefix.
+4. Seed the demo accounts and data. The seed creates one account per role (Admin, Sales, Sanction, Disbursement, Collection, Borrower). Login credentials are in the Google Drive folder linked above. It also adds demo borrowers in every loan state, and it's safe to re-run: it resets the demo accounts and their loans and leaves other users alone. It deletes any payment whose UTR starts with `SEED` (the prefix the seed uses), so don't record real payments with that prefix.
 
    ```bash
    npm run seed --prefix backend
    ```
 
-   Optionally add the QA data from [docs/TEST_ACCOUNTS.md](docs/TEST_ACCOUNTS.md) (`--remove-test-data` takes it out again):
+   Optionally add the QA data described in [docs/TEST_ACCOUNTS.md](docs/TEST_ACCOUNTS.md): 60 removable `@test.lms.dev` accounts, so every role sees at least 5 records (`--remove-test-data` takes it out again):
 
    ```bash
    npm run seed --prefix backend -- --test-data
@@ -351,7 +313,7 @@ Step-by-step instructions (Atlas, Render, Vercel, env vars, post-deploy checks) 
 
 ## Known limitations
 
-- **Shared demo credentials**, published on purpose for evaluation.
+- **Shared demo credentials** for evaluation (in the Drive folder); the seed resets them on every run.
 - **Free-tier cold starts** on Render: the first request can take about a minute.
 - **Stateless JWT:** logout clears the cookie, but a stolen token stays valid until it expires (1 day).
 - **Sign-up reveals registered emails** (409), mitigated by rate limits.

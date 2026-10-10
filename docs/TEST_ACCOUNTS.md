@@ -1,8 +1,8 @@
 # Test accounts
 
-QA data for checking every role by hand. It lives entirely on the **`@test.lms.dev`** domain, so it can be added and removed without touching the `@lms.dev` demo accounts (README "Demo accounts") or real users.
+QA data for checking every role by hand. It lives entirely on the **`@test.lms.dev`** domain, so it can be added and removed without touching the `@lms.dev` demo accounts that the plain seed creates, or real users.
 
-**Password for every account below: `Test@1234`**
+**Passwords:** every account below shares one password, which is shared with the evaluator separately, in the [Google Drive folder](https://drive.google.com/drive/folders/1otgfW5d0zABoxoPfGcvLKE824S2YY9yt?usp=sharing), not in the repo.
 
 | Command (from `backend/`)            | What it does                                                                                         |
 | ------------------------------------ | ---------------------------------------------------------------------------------------------------- |
@@ -238,7 +238,7 @@ Also check:
 
 ## Staff management (admin)
 
-Admins manage roles on **Staff** (`/dashboard/staff`). Any admin works: `admin@lms.dev` / `Password@123` or `admin1@test.lms.dev` / `Test@1234`.
+Admins manage roles on **Staff** (`/dashboard/staff`). Any admin works: the seeded Admin account or `admin1@test.lms.dev` (passwords in the Drive folder).
 
 1. **Open Staff.** Log in as an admin and open **Staff** in the sidebar. Everyone is listed with a role badge. Try the search ("sharma") and the role filter (Admin, Borrower, …).
 2. **Add a staff member.** Click **Add staff member** and enter a name, a new email (for example `new.sanction@example.com`), a temporary password (8+ characters with a letter and a digit, e.g. `Welcome123`) and the role **Sanction**. You get a toast, and they appear in the list.

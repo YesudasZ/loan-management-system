@@ -68,7 +68,7 @@ cd backend && MONGODB_URI='<prod connection string>' NODE_ENV=production npm run
 Then confirm a login works on Render:
 
 ```bash
-curl -s -H 'Content-Type: application/json' -d '{"email":"admin@lms.dev","password":"Password@123"}' https://<your-service>.onrender.com/api/v1/auth/login
+curl -s -H 'Content-Type: application/json' -d '{"email":"admin@lms.dev","password":"<seed password>"}' https://<your-service>.onrender.com/api/v1/auth/login
 ```
 
 **Result (2026-10-10):** the API is live at https://loan-management-system-wl8j.onrender.com (`/health` → 200). Atlas network access currently allows `0.0.0.0/0`, because the free instance needs it; the database is protected by its password and TLS.
@@ -123,7 +123,7 @@ Then **Save, rebuild, and deploy**. Wait for **Live**. Without this, every login
 Open the Vercel URL in a private window. If the API is asleep, a "Waking up the server" banner may show for up to a minute.
 
 1. `https://<name>.vercel.app/` redirects to `/login`.
-2. Log in as `admin@lms.dev` / `Password@123`. You land on **Overview** with all five modules in the sidebar (Sales, Sanction, Disbursement, Collection, Staff).
+2. Log in as the seeded Admin account. You land on **Overview** with all five modules in the sidebar (Sales, Sanction, Disbursement, Collection, Staff).
 3. DevTools → **Application → Cookies → https://\<name>.vercel.app**: `lms_token` has **HttpOnly** ✓, **Secure** ✓, **SameSite Lax**, and the domain is the Vercel domain.
 4. **Log out**, then log in as `sanction@lms.dev`. You land on `/dashboard/sanction`. Type `/dashboard/collection` and `/apply` in the address bar; both show the **403** page.
 5. Log in as `borrower@lms.dev`. You land on `/apply`. Typing `/dashboard` shows the 403 page.

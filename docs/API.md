@@ -15,19 +15,19 @@ The canonical API reference. Each feature branch adds the rows for the endpoints
 
 ## Error codes
 
-| HTTP | Codes                                                                                                                                      |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| 400  | `VALIDATION_ERROR` (details: `[{ field, message }]`), `INVALID_JSON`, `FILE_REQUIRED`, `INVALID_UPLOAD`                                    |
-| 401  | `UNAUTHENTICATED`, `INVALID_CREDENTIALS`                                                                                                   |
-| 403  | `FORBIDDEN`, `INVALID_ORIGIN`                                                                                                              |
-| 404  | `NOT_FOUND`                                                                                                                                |
-| 409  | `EMAIL_ALREADY_REGISTERED`, `ACTIVE_LOAN_EXISTS`, `PROFILE_INCOMPLETE`, `INVALID_STATUS_TRANSITION`, `LOAN_NOT_DISBURSED`, `DUPLICATE_UTR` |
-| 413  | `PAYLOAD_TOO_LARGE` (JSON body over 100 kb), `FILE_TOO_LARGE` (upload over 5 MB)                                                           |
-| 415  | `UNSUPPORTED_FILE_TYPE` (extension, declared type and magic bytes must all be PDF/JPG/PNG)                                                 |
-| 422  | `BRE_FAILED`, `PAYMENT_RULES_FAILED` (details: `{ failures: [{ rule, message }] }`, every failed rule)                                     |
-| 429  | `RATE_LIMITED`                                                                                                                             |
-| 500  | `INTERNAL_ERROR` (generic message, no internals)                                                                                           |
-| 503  | `DATABASE_UNAVAILABLE` (`/health` only)                                                                                                    |
+| HTTP | Codes                                                                                                                                                                                                                    |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 400  | `VALIDATION_ERROR` (details: `[{ field, message }]`), `INVALID_JSON`, `FILE_REQUIRED`, `INVALID_UPLOAD`                                                                                                                  |
+| 401  | `UNAUTHENTICATED`, `INVALID_CREDENTIALS`                                                                                                                                                                                 |
+| 403  | `FORBIDDEN`, `INVALID_ORIGIN`                                                                                                                                                                                            |
+| 404  | `NOT_FOUND`                                                                                                                                                                                                              |
+| 409  | `EMAIL_ALREADY_REGISTERED`, `ACTIVE_LOAN_EXISTS`, `PROFILE_INCOMPLETE`, `INVALID_STATUS_TRANSITION`, `LOAN_NOT_DISBURSED`, `DUPLICATE_UTR`, `CANNOT_CHANGE_OWN_ROLE`, `LAST_ADMIN`, `BORROWER_HAS_LOANS`, `ROLE_CHANGED` |
+| 413  | `PAYLOAD_TOO_LARGE` (JSON body over 100 kb), `FILE_TOO_LARGE` (upload over 5 MB)                                                                                                                                         |
+| 415  | `UNSUPPORTED_FILE_TYPE` (extension, declared type and magic bytes must all be PDF/JPG/PNG)                                                                                                                               |
+| 422  | `BRE_FAILED`, `PAYMENT_RULES_FAILED` (details: `{ failures: [{ rule, message }] }`, every failed rule)                                                                                                                   |
+| 429  | `RATE_LIMITED`                                                                                                                                                                                                           |
+| 500  | `INTERNAL_ERROR` (generic message, no internals)                                                                                                                                                                         |
+| 503  | `DATABASE_UNAVAILABLE` (`/health` only)                                                                                                                                                                                  |
 
 ## Endpoints
 
@@ -59,12 +59,17 @@ The canonical API reference. Each feature branch adds the rows for the endpoints
 
 | GET | `/api/v1/leads` | SALES, ADMIN | `?page&limit` | 200 paginated `Lead` (borrowers with no loan of any status, newest first) | 400, 401, 403 |
 | GET | `/api/v1/dashboard/summary` | ADMIN | — | 200 `{ loansByStatus: { APPLIED, SANCTIONED, REJECTED, DISBURSED, CLOSED } (zero-filled), leadCount }` | 401, 403 |
+| GET | `/api/v1/admin/users` | ADMIN | `?role&search&page&limit`. `search` (≤ 100 chars) matches anywhere in the name or email, ignoring case, as plain text. | 200 paginated `AdminUser` (newest first) | 400, 401, 403 |
+| POST | `/api/v1/admin/users` | ADMIN | `{ name, email, password, role }`. Same name, email and password rules as sign-up; `role` is one of SALES, SANCTION, DISBURSEMENT, COLLECTION, ADMIN (never BORROWER). | 201 `{ user: AdminUser }`; recorded in the user's `roleHistory` | 400, 401, 403, 409 `EMAIL_ALREADY_REGISTERED` |
+| PATCH | `/api/v1/admin/users/:userId/role` | ADMIN | `{ role }` (any role) | 200 `{ user: AdminUser }`; `roleHistory` gets `{ from, to, by, at }`. The same role again is a no-op. Takes effect on the user's next request; they log in again to see their new dashboard. | 400, 401, 403, 404, 409 `CANNOT_CHANGE_OWN_ROLE` / `LAST_ADMIN` / `BORROWER_HAS_LOANS` (a borrower with any loan can't become staff) / `ROLE_CHANGED` (changed concurrently) |
 
 Staff actions return 404 only when the loan id doesn't exist; a loan in the wrong status is 409. Reads are scoped: an executive gets 404 for loans outside their module's status.
 
 `LoanSummary` = `{ id, borrower: { name, email }, applicant: { fullName, panMasked }, principal, tenureDays, totalRepayment, totalPaid, outstanding, status, createdAt, disbursedAt }`. `LoanDetail` adds `applicant.{ dateOfBirth, monthlySalary, employmentMode, breResult }`, `salarySlip`, `annualInterestRate`, `simpleInterest`, `rejectionReason`, `closedAt` and `statusHistory: [{ from, to, at, note, by: { name, role } }]`. Staff never see a full PAN.
 
 `Lead` = `{ id, name, email, registeredAt, stage: 'PROFILE_PENDING' | 'BRE_FAILED' | 'SALARY_SLIP_PENDING' | 'READY_TO_APPLY', breFailures: [{ rule, message }] }`. The stage uses the BRE re-evaluated with today's date.
+
+`AdminUser` = `{ id, name, email, role, createdAt }`. It never includes the password hash or the role history.
 
 `Payment` = `{ id, utr, amount, paymentDate, recordedBy: { name }, createdAt }`.
 

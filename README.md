@@ -18,7 +18,7 @@ Every seeded account uses the password **`Password@123`**.
 
 | Email                                                | Role / state                                                                  |
 | ---------------------------------------------------- | ----------------------------------------------------------------------------- |
-| `admin@lms.dev`                                      | ADMIN: every module plus the overview                                         |
+| `admin@lms.dev`                                      | ADMIN: every module, the overview and Staff management                        |
 | `sales@lms.dev`                                      | SALES                                                                         |
 | `sanction@lms.dev`                                   | SANCTION                                                                      |
 | `disbursement@lms.dev`                               | DISBURSEMENT                                                                  |
@@ -51,13 +51,14 @@ This is a demo with shared, published credentials: please don't enter real perso
 
 **Operations dashboard** (`/dashboard`). Each role sees only its module; Admin sees everything.
 
-| Module       | Who                 | What                                                                                                                       |
-| ------------ | ------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| Sales        | SALES, ADMIN        | Registered borrowers who haven't applied, with their stage (details pending / not eligible / slip pending / ready)         |
-| Sanction     | SANCTION, ADMIN     | APPLIED loans → review the applicant, BRE result and salary slip (inline viewer) → **Approve** or **Reject with a reason** |
-| Disbursement | DISBURSEMENT, ADMIN | SANCTIONED loans → **Mark disbursed** (confirm dialog)                                                                     |
-| Collection   | COLLECTION, ADMIN   | DISBURSED loans → record payments (unique UTR, amount, date); the loan **auto-closes** when fully repaid                   |
-| Overview     | ADMIN               | Counts per status, plus every loan with a status filter                                                                    |
+| Module       | Who                 | What                                                                                                                                                                                                                                                           |
+| ------------ | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Sales        | SALES, ADMIN        | Registered borrowers who haven't applied, with their stage (details pending / not eligible / slip pending / ready)                                                                                                                                             |
+| Sanction     | SANCTION, ADMIN     | APPLIED loans → review the applicant, BRE result and salary slip (inline viewer) → **Approve** or **Reject with a reason**                                                                                                                                     |
+| Disbursement | DISBURSEMENT, ADMIN | SANCTIONED loans → **Mark disbursed** (confirm dialog)                                                                                                                                                                                                         |
+| Collection   | COLLECTION, ADMIN   | DISBURSED loans → record payments (unique UTR, amount, date); the loan **auto-closes** when fully repaid                                                                                                                                                       |
+| Overview     | ADMIN               | Counts per status, plus every loan with a status filter                                                                                                                                                                                                        |
+| Staff        | ADMIN               | Every user with their role (search, role filter); **add staff members** with a temporary password and **change roles**, with safety rules: an admin can't change their own role, the last admin can't be demoted, and a borrower with loans can't become staff |
 
 ## Tech stack
 
@@ -169,12 +170,14 @@ Base path `/api/v1`. Full request and response shapes and every error code are i
 | GET, POST | `/loans/:loanId/payments`                          | COLLECTION, ADMIN                                                          |
 | GET       | `/leads`                                           | SALES, ADMIN                                                               |
 | GET       | `/dashboard/summary`                               | ADMIN                                                                      |
+| GET, POST | `/admin/users`                                     | ADMIN                                                                      |
+| PATCH     | `/admin/users/:userId/role`                        | ADMIN                                                                      |
 
 Status codes: 400 validation · 401 not logged in · 403 wrong role · 404 · 409 conflict · 413 too large · 415 file type · 422 business rule (BRE / payment) · 429 rate limited. Every list is paginated (`?page&limit`).
 
 ## Security
 
-RBAC on every route, with a test matrix covering **18 protected endpoints × 7 identities**. Also: IDOR-safe borrower routes, strict zod schemas, NoSQL-injection guards, magic-byte upload checks, an httpOnly cookie session, rate limits, an Origin check, helmet, and redacted logs. The full review against the project rules, the test evidence and the known limitations are in **[docs/SECURITY.md](docs/SECURITY.md)**.
+RBAC on every route, with a test matrix covering **21 protected endpoints × 7 identities**. Admin-only staff management with lock-out and segregation-of-duties rules. Also: IDOR-safe borrower routes, strict zod schemas, NoSQL-injection guards, magic-byte upload checks, an httpOnly cookie session, rate limits, an Origin check, helmet, and redacted logs. The full review against the project rules, the test evidence and the known limitations are in **[docs/SECURITY.md](docs/SECURITY.md)**.
 
 ## Project structure
 
@@ -276,10 +279,10 @@ npm run build
 npm run secrets
 ```
 
-- **Backend: 424 tests.**
+- **Backend: 477 tests.**
   - Unit: BRE, loan math, state machine, payment rules, dates, JWT, env, log redaction, cookie flags.
-  - Integration (supertest + in-memory replica set): auth, profile/BRE, uploads, apply, sanction/disbursement/collection, the payment transaction incl. concurrency, leads/summary, borrower loan history, the **126-cell RBAC matrix**, an IDOR / injection / mass-assignment suite, and the test-data seed (consistency, idempotency, safe removal, and a login as each of the 60 test accounts).
-- **Frontend: 77 tests:** BRE and loan-math mirrors (shared vectors), route access and safe redirects, wizard redirects, formatting.
+  - Integration (supertest + in-memory replica set): auth, profile/BRE, uploads, apply, sanction/disbursement/collection, the payment transaction incl. concurrency, leads/summary, borrower loan history, staff management (each safety rule, plus two admins demoting each other at once), the **147-cell RBAC matrix**, an IDOR / injection / mass-assignment suite, and the test-data seed (consistency, idempotency, safe removal, and a login as each of the 60 test accounts).
+- **Frontend: 78 tests:** BRE and loan-math mirrors (shared vectors), route access and safe redirects, wizard redirects, formatting.
 - **CI** (GitHub Actions) on every PR: lint, typecheck, test, build and `npm audit` for each app, a full-history gitleaks scan, and a Conventional-Commit PR title check. `main` is protected and requires these checks.
 
 ## Deployment

@@ -168,3 +168,30 @@ The first sign-up attempt returned 403 `INVALID_ORIGIN`, because Render was stil
 - `/dashboard` while anonymous → 307 to `/login?next=%2Fdashboard`.
 
 `TRUST_PROXY_HOPS` is still `1`. It needs to be measured from the Render log (step 5) and is tracked in PROGRESS.md.
+
+---
+
+## Day-to-day: redeploys and the release checklist
+
+**Redeploys.** Merging to `main` redeploys both apps: Vercel builds `main`, and Render deploys once CI passes (`autoDeployTrigger: checksPass`).
+
+- Changing an env var on Render only takes effect after **Save, rebuild, and deploy**.
+- Changing one on Vercel needs a **Redeploy** of the latest production deployment.
+- Every backend env var is validated at startup, so a bad value fails the deploy instead of half-working.
+
+**Before the submission (and after any change to the seed):**
+
+1. **Rotate the database password.** In Atlas → **Security → Database Access**, find the user in your `MONGODB_URI` (e.g. `lms_prod_app`) → **Edit → Edit Password**, and autogenerate a new password.
+   - Update `MONGODB_URI` on Render (then **Save, rebuild, and deploy**) and in your local `backend/.env`.
+   - Make sure the prod URI names the prod database, e.g. `mongodb+srv://lms_prod_app:<password>@<cluster>/lms_prod?retryWrites=true&w=majority`. Without a database name, the driver uses `test`.
+2. **Re-seed production** from your laptop. It's safe to re-run: it resets only the `@lms.dev` demo accounts and their loans.
+
+   ```bash
+   cd backend && MONGODB_URI='<prod connection string>' NODE_ENV=production npm run seed -- --force
+   ```
+
+3. **Health:** `/health` → 200 with `"database":"connected"`.
+4. **Upload-size check** through Vercel: 4.9 MB → success, 5.1 MB → `FILE_TOO_LARGE` (commands in PROGRESS.md §4).
+5. **`TRUST_PROXY_HOPS`** measured as in checkpoint B step 5.
+6. **Deployed end-to-end run:** BRE fail → fix → upload → apply → approve → disburse → partial payment → duplicate UTR rejected → final payment auto-closes → the borrower sees CLOSED (PROGRESS.md §5).
+7. **Re-seed once more after the E2E run,** so evaluators start from the documented demo data.

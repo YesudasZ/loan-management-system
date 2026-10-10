@@ -1,8 +1,9 @@
 import { BorrowerProfileModel } from './borrower-profile.model.js';
 import { LoanModel } from './loan.model.js';
+import { PaymentModel } from './payment.model.js';
 import { UserModel } from './user.model.js';
 
-const ALL_MODELS = [UserModel, BorrowerProfileModel, LoanModel];
+const ALL_MODELS = [UserModel, BorrowerProfileModel, LoanModel, PaymentModel];
 
 /**
  * Creates every collection and builds its indexes (for example the unique email index and the

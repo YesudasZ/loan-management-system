@@ -425,3 +425,7 @@ One `fix/audit-*` branch per approved group, each with regression tests and the 
   - **Fix:** the navigated path is now checked too, and encoded `%2f`/`%5c` are refused.
   - **Tests:** 16 new cases in `route-access.test.ts` (15 payloads × 3 roles, plus harmless dot segments still resolving internally); 11 fail without the fix.
   - **Manual test** (live, after Vercel deploys): log out, open `/login?next=/.//example.com`, log in → you land on your home page, not example.com.
+- **`fix/audit-admin-self-role` (B-05, Low):**
+  - **Problem:** an admin could change their own role by sending their user id in upper-case hex; the guard compared strings.
+  - **Fix:** every id is normalised to lower case at validation (`objectIdSchema`), and the guard compares ObjectIds.
+  - **Tests:** the own id in upper case → 409 `CANNOT_CHANGE_OWN_ROLE` (fails without the fix); an upper-case id for another user still works.

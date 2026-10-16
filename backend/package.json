@@ -25,11 +25,11 @@
     "file-type": "22.1.1",
     "helmet": "8.3.0",
     "jose": "6.2.12",
-    "mongoose": "9.11.1",
+    "mongoose": "9.11.2",
     "multer": "2.4.0",
     "pino": "10.4.0",
     "pino-http": "11.0.0",
-    "zod": "4.6.5"
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@eslint/js": "9.39.5",
@@ -46,8 +46,8 @@
     "supertest": "7.3.1",
     "tsx": "4.23.15",
     "typescript": "6.0.3",
-    "typescript-eslint": "8.71.1",
-    "vitest": "5.0.3"
+    "typescript-eslint": "8.71.2",
+    "vitest": "5.0.4"
   },
   "config": {
     "mongodbMemoryServer": {
